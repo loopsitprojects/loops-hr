@@ -1,0 +1,11 @@
+<?php
+$logFile = 'storage/logs/laravel.log';
+if (file_exists($logFile)) {
+    $lines = file($logFile);
+    $lastLines = array_slice($lines, -50);
+    foreach ($lastLines as $line) {
+        echo $line;
+    }
+} else {
+    echo "Log file not found.";
+}

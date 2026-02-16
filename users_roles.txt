@@ -1,0 +1,5 @@
+ID: 2 | Name: Super Admin | Email: admin@loopshr.com | Role: 
+ID: 14 | Name: System Manager | Email: manager@loopshr.com | Role: Operations Manager
+ID: 15 | Name: arosh | Email: arosh@loops.com | Role: Head of Department
+ID: 16 | Name: shimal | Email: shimal@loopsintegrated.com | Role: Super Admin
+ID: 17 | Name: Oshan | Email: oshanloops99@gmail.com | Role: Head of Department
