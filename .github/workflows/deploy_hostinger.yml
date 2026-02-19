@@ -1,0 +1,73 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, dom, filter, gd, hash, json, libxml
+
+    - name: Install Composer Dependencies
+      run: composer install --no-ansi --no-dev --no-interaction --no-plugins --no-progress --no-scripts --optimize-autoloader
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install NPM Dependencies & Build
+      run: |
+        npm install
+        npm run build
+
+    - name: Run Tests
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: :memory:
+      run: php artisan test
+
+    - name: Deploy to Hostinger (FTP)
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        server-dir: public_html/hrtest/
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          **/tests/**
+          .env
+          .editorconfig
+          phpunit.xml
+          README.md
+          
+    # Optional: Deploy via Rsync (Faster, but requires SSH setup)
+    # - name: Deploy via Rsync
+    #   uses: Burnett01/rsync-deployments@7.1.0
+    #   with:
+    #     switches: -avzr --delete
+    #     path: ./
+    #     remote_path: /home/u12345678/domains/yourdomain.com/public_html/
+    #     remote_host: ${{ secrets.HOST }}
+    #     remote_user: ${{ secrets.USERNAME }}
+    #     remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
+    #     exclude: |
+    #       .git/
+    #       .github/
+    #       node_modules/
+    #       storage/
+    #       .env

@@ -217,25 +217,25 @@
                                     <input type="checkbox" id="select-all" class="rounded border-slate-300 text-brand-navy focus:ring-brand-navy dark:border-slate-700 dark:bg-slate-900 dark:checked:bg-brand-navy">
                                 </th>
                                 <th class="w-[2%]"><!-- Spacer --></th>
-                                <th class="pb-4 text-left w-[15%]">Name</th>
-                                <th class="pb-4 text-left w-[15%]">Email</th>
-                                <th class="pb-4 text-left w-[9%]">Phone</th>
+                                <th class="pb-4 text-left w-[12%]">Name</th>
+                                <th class="pb-4 text-left w-[12%]">Email</th>
+                                <th class="pb-4 text-left w-[8%]">Phone</th>
                                 <th class="pb-4 text-left w-[8%]">Expected Salary</th>
                                 <th class="pb-4 text-center w-[7%]">Status</th>
                                 <th class="pb-4 text-center w-[7%]">Pipeline</th>
                                 <th class="pb-4 text-center w-[4%]">Rating</th>
-                                <th class="pb-4 text-center w-[3%]">Feedback</th>
+                                <th class="pb-4 text-center w-[6%]">Feedback</th>
                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
-                                    <th class="pb-4 text-center w-[3%]">Test</th>
-                                    <th class="pb-4 text-center w-[3%]">Rej</th>
+                                    <th class="pb-4 text-center w-[5%]">Test</th>
+                                    <th class="pb-4 text-center w-[5%]">Rej</th>
                                 @endif
-                                <th class="pb-4 text-center w-[3%]">Link</th>
+                                <th class="pb-4 text-center w-[5%]">Link</th>
                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
-                                    <th class="pb-4 text-center w-[3%]">Sch</th>
+                                    <th class="pb-4 text-center w-[5%]">Sch</th>
                                 @endif
-                                <th class="pb-4 text-center w-[3%]">CV</th>
+                                <th class="pb-4 text-center w-[5%]">CV</th>
                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
-                                    <th class="pb-4 text-center w-[3%]">Arc</th>
+                                    <th class="pb-4 text-center w-[5%]">Arc</th>
                                 @endif
                             </tr>
                         </thead>
@@ -357,7 +357,7 @@
                                         <div class="flex items-center justify-center">
                                             <div class="feedback-trigger group cursor-pointer inline-flex items-center gap-2 p-1 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50"
                                                 data-candidate-id="{{ $candidate->id }}"
-                                                style="max-width: 100px;"
+                                                style="max-width: 80px;"
                                                 onclick="openFeedbackModal({{ $candidate->id }}, '{{ str_replace(["\r", "\n", "'"], ['', '\n', "\\'"], $candidate->hod_comment) }}')">
                                                 <div class="w-7 h-7 rounded-full bg-brand-teal/5 flex items-center justify-center flex-shrink-0 group-hover:bg-brand-teal/10 transition-colors">
                                                     <svg class="w-3.5 h-3.5 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
