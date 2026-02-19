@@ -7,6 +7,8 @@ use Tests\TestCase;
 
 class AssessmentTest extends TestCase
 {
+    use \Illuminate\Foundation\Testing\RefreshDatabase;
+
     public function test_recruitment_tests_data_endpoint()
     {
         $user = User::factory()->create();

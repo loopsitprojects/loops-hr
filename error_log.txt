@@ -1,0 +1,44 @@
+
+   FAIL  Tests\Feature\AssessmentTest
+  ??? recruitment tests data endpoint
+  ??? assessment public access requires token
+  ?????????????????????????????????????????????????????????  
+  ???   QueryException   
+  SQLSTATE[HY000]: General error: 1 near "MODIFY": syntax error (Connection: sqlite, Database: :memory:, SQL: ALTER TABLE candidates MODIFY COLUMN stage ENUM('test', '1st_interview', '2nd_interview', 'offer_sent', 'offer_accepted', 'joined', 'rejected') DEFAULT 'test')
+
+  at vendor\laravel\framework\src\Illuminate\Database\Connection.php:571
+    567???             if ($this->pretending()) {
+    568???                 return true;
+    569???             }
+    570??? 
+  ??? 571???             $statement = $this->getPdo()->prepare($query);
+    572??? 
+    573???             $this->bindValues($statement, $this->prepareBindings($bindings));
+    574??? 
+    575???             $this->recordsHaveBeenModified();
+
+  1   vendor\laravel\framework\src\Illuminate\Database\Connection.php:571
+  2   vendor\laravel\framework\src\Illuminate\Database\Connection.php:820
+
+  ?????????????????????????????????????????????????????????  
+  ???   QueryException   
+  SQLSTATE[HY000]: General error: 1 near "MODIFY": syntax error (Connection: sqlite, Database: :memory:, SQL: ALTER TABLE candidates MODIFY COLUMN stage ENUM('test', '1st_interview', '2nd_interview', 'offer_sent', 'offer_accepted', 'joined', 'rejected') DEFAULT 'test')
+
+  at vendor\laravel\framework\src\Illuminate\Database\Connection.php:571
+    567???             if ($this->pretending()) {
+    568???                 return true;
+    569???             }
+    570??? 
+  ??? 571???             $statement = $this->getPdo()->prepare($query);
+    572??? 
+    573???             $this->bindValues($statement, $this->prepareBindings($bindings));
+    574??? 
+    575???             $this->recordsHaveBeenModified();
+
+  1   vendor\laravel\framework\src\Illuminate\Database\Connection.php:571
+  2   vendor\laravel\framework\src\Illuminate\Database\Connection.php:820
+
+
+  Tests:    2 failed (0 assertions)
+  Duration: 5.76s
+

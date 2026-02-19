@@ -194,6 +194,23 @@ class RecruitmentController extends Controller
         return redirect()->back()->with('success', 'Role removed successfully.');
     }
 
+    public function updateDesignation(Request $request, Designation $designation)
+    {
+        if (!auth()->user()->isAdmin() && !auth()->user()->isHR()) {
+            return redirect()->back()->with('error', 'Unauthorized.');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $designation->update([
+            'name' => $request->name,
+        ]);
+
+        return redirect()->back()->with('success', 'Role renamed successfully.');
+    }
+
     public function create(Request $request)
     {
         $departments = Department::with('designations')->get();

@@ -22,7 +22,13 @@
             </div>
             
             <div class="flex items-center gap-3 justify-end">
-                {{-- Rename and Delete buttons removed --}}
+                @if(Auth::user()->isAdmin() || Auth::user()->isHR())
+                <button x-data="" x-on:click="$dispatch('open-modal', 'edit-department-modal')" 
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-semibold uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    Rename Dept
+                </button>
+                @endif
                 <x-primary-button x-data="" x-on:click="$dispatch('open-modal', 'add-designation-modal')">
                     {{ __('Add Role') }}
                 </x-primary-button>
@@ -30,7 +36,7 @@
         </div>
     </x-slot>
 
-    <div class="py-12" x-data="{ confirmingRoleDeletion: null }">
+    <div class="py-12" x-data="{ confirmingRoleDeletion: null, renamingRole: null, renameRoleValue: '' }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
 
@@ -76,6 +82,11 @@
 
                                 @if(Auth::user()->isAdmin() || Auth::user()->isHR())
                                 <div class="flex items-center gap-1">
+                                    <button @click.stop.prevent="renamingRole = {{ $designation->id }}; renameRoleValue = '{{ addslashes($designation->name) }}'" 
+                                            class="p-2 text-slate-300 hover:text-brand-teal transition-all"
+                                            title="Rename Role">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    </button>
                                     <button onclick="toggleStatus({{ $designation->id }})" 
                                             class="p-2 {{ $designation->is_active ? 'text-brand-teal' : 'text-slate-400' }} hover:text-brand-navy dark:hover:text-white transition-all"
                                             title="{{ $designation->is_active ? 'Pause Hiring' : 'Resume Hiring' }}">
@@ -103,6 +114,29 @@
                                 @endif
                             </div>
                         </div>
+
+                        <!-- Rename Role Overlay -->
+                        @if(Auth::user()->isAdmin() || Auth::user()->isHR())
+                        <div x-show="renamingRole === {{ $designation->id }}" 
+                             x-transition:enter="transition ease-out duration-300"
+                             x-transition:enter-start="opacity-0"
+                             x-transition:enter-end="opacity-100"
+                             class="absolute inset-0 bg-white/30 dark:bg-slate-900/30 backdrop-blur-xl z-30 rounded-[2.5rem] flex flex-col items-center justify-center p-6 text-center border border-white/40 dark:border-slate-800/40 shadow-2xl">
+                            <div class="bg-white dark:bg-slate-900 p-6 rounded-[2rem] shadow-xl border border-slate-100 dark:border-slate-800 w-full">
+                                <p class="text-sm font-bold text-slate-900 dark:text-white mb-4">Rename Job Role</p>
+                                <form action="{{ route('recruitment.updateDesignation', $designation) }}" method="POST" class="space-y-3">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="text" name="name" x-model="renameRoleValue"
+                                           class="block w-full rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:ring-brand-teal/20 focus:border-brand-teal" required />
+                                    <div class="flex flex-col gap-2 pt-1">
+                                        <button type="submit" class="w-full py-3 bg-brand-teal text-white rounded-xl text-[11px] font-bold hover:bg-brand-teal/90 shadow-md transition-all active:scale-95">Save</button>
+                                        <button type="button" @click.prevent="renamingRole = null" class="w-full py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl text-[11px] font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        @endif
                     </div>
                 @empty
                     <div class="col-span-full py-20 text-center flex flex-col items-center justify-center bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[3rem] border border-dashed border-slate-200 dark:border-slate-800">

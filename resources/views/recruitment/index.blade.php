@@ -24,7 +24,7 @@
         </div>
     </x-slot>
 
-    <div class="py-12" x-data="{ confirmingDeletion: null }">
+    <div class="py-12" x-data="{ confirmingDeletion: null, renamingDepartment: null, renameValue: '' }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             <!-- Folder Grid -->
@@ -58,18 +58,48 @@
                                     </svg>
                                 </div>
                                 @if(Auth::user()->isAdmin() || Auth::user()->isHR())
-                                    <button @click.stop.prevent="confirmingDeletion = {{ $department->id }}" 
-                                            class="p-2 text-slate-300 hover:text-red-500 transition-colors relative z-20"
-                                            title="Delete Department">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                        </svg>
-                                    </button>
+                                    <div class="flex items-center gap-1">
+                                        <button @click.stop.prevent="renamingDepartment = {{ $department->id }}; renameValue = '{{ addslashes($department->name) }}'" 
+                                                class="p-2 text-slate-300 hover:text-brand-teal transition-colors relative z-20"
+                                                title="Rename Department">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                            </svg>
+                                        </button>
+                                        <button @click.stop.prevent="confirmingDeletion = {{ $department->id }}" 
+                                                class="p-2 text-slate-300 hover:text-red-500 transition-colors relative z-20"
+                                                title="Delete Department">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
                                 @endif
                             </div>
                         </a>
 
-                        <!-- Simplified Deletion Overlay -->
+                        <!-- Rename Overlay -->
+                        <div x-show="renamingDepartment === {{ $department->id }}" 
+                             x-transition:enter="transition ease-out duration-300"
+                             x-transition:enter-start="opacity-0"
+                             x-transition:enter-end="opacity-100"
+                             class="absolute inset-0 bg-white/30 dark:bg-slate-900/30 backdrop-blur-xl z-30 rounded-[2.5rem] flex flex-col items-center justify-center p-8 text-center border border-white/40 dark:border-slate-800/40 shadow-2xl">
+                            <div class="bg-white dark:bg-slate-900 p-8 rounded-[2rem] shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-[280px]">
+                                <p class="text-sm font-bold text-slate-900 dark:text-white mb-4">Rename Department</p>
+                                <form action="{{ route('recruitment.updateDepartment', $department) }}" method="POST" class="space-y-3">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="text" name="name" x-model="renameValue"
+                                           class="block w-full rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:ring-brand-teal/20 focus:border-brand-teal" required />
+                                    <div class="flex flex-col gap-2 pt-1">
+                                        <button type="submit" class="w-full py-3 bg-brand-teal text-white rounded-xl text-[11px] font-bold hover:bg-brand-teal/90 shadow-md transition-all active:scale-95">Save</button>
+                                        <button type="button" @click.prevent="renamingDepartment = null" class="w-full py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl text-[11px] font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Deletion Overlay -->
                         <div x-show="confirmingDeletion === {{ $department->id }}" 
                              x-transition:enter="transition ease-out duration-300"
                              x-transition:enter-start="opacity-0 backdrop-blur-0"

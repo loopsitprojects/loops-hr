@@ -27,6 +27,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/recruitment/department/{department}/designation/{designation}', [\App\Http\Controllers\RecruitmentController::class, 'designation'])->name('recruitment.designation');
     Route::post('/recruitment/department/{department}/designation', [\App\Http\Controllers\RecruitmentController::class, 'storeDesignation'])->name('recruitment.storeDesignation');
     Route::delete('/recruitment/designation/{designation}', [\App\Http\Controllers\RecruitmentController::class, 'destroyDesignation'])->name('recruitment.destroyDesignation');
+    Route::patch('/recruitment/designation/{designation}', [\App\Http\Controllers\RecruitmentController::class, 'updateDesignation'])->name('recruitment.updateDesignation');
     Route::patch('/recruitment/designation/{designation}/toggle-status', [\App\Http\Controllers\RecruitmentController::class, 'toggleDesignationStatus'])->name('recruitment.toggleDesignationStatus');
     Route::get('/recruitment/create', [\App\Http\Controllers\RecruitmentController::class, 'create'])->name('recruitment.create');
     Route::post('/recruitment/preview-cv', [\App\Http\Controllers\RecruitmentController::class, 'previewCV'])->name('recruitment.previewCV');
