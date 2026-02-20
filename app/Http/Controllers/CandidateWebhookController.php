@@ -236,11 +236,18 @@ class CandidateWebhookController extends Controller
      */
     private function downloadAndUploadCV($url, $candidateName)
     {
+        Log::info('Attempting CV download', ['url' => $url]);
+        
         // Download CV from WPForms URL
-        $response = Http::timeout(30)->get($url);
+        $response = Http::timeout(45)->get($url);
         
         if (!$response->successful()) {
-            throw new \Exception("Failed to download CV from URL: {$url}");
+            Log::error('CV Download Failed', [
+                'status' => $response->status(),
+                'url' => $url,
+                'response_snippet' => substr($response->body(), 0, 200)
+            ]);
+            throw new \Exception("Failed to download CV. Status: {$response->status()}");
         }
 
         // Get file extension from URL or content type
@@ -265,8 +272,20 @@ class CandidateWebhookController extends Controller
             $path = rtrim($folder, '/') . '/' . $filename;
         }
 
-        Storage::disk('ftp_cvs')->put($path, $response->body());
-        Log::info('File uploaded to FTP', ['path' => $path]);
+        $ftpStart = microtime(true);
+        $success = Storage::disk('ftp_cvs')->put($path, $response->body());
+        $ftpDuration = round(microtime(true) - $ftpStart, 2);
+
+        if ($success) {
+            Log::info('CV uploaded successfully to FTP', [
+                'path' => $path,
+                'duration' => $ftpDuration . 's',
+                'size' => strlen($response->body()) . ' bytes'
+            ]);
+        } else {
+            Log::error('FTP Upload failed silently', ['path' => $path]);
+            throw new \Exception("FTP upload returned false for path: {$path}");
+        }
 
         return $path;
     }
