@@ -448,7 +448,7 @@
 
                                     {{-- CV Column (Visible to all) --}}
                                     <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
-                                        <a href="{{ config('filesystems.disks.ftp_cvs.url') }}/{{ $candidate->cv_path }}" target="_blank" class="inline-flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-brand-teal transition-colors" title="View CV">
+                                        <a href="{{ rtrim(config('filesystems.disks.ftp_cvs.url'), '/') }}/{{ ltrim($candidate->cv_path, '/') }}" target="_blank" class="inline-flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-brand-teal transition-colors" title="View CV">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                             </svg>
