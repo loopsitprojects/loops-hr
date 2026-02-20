@@ -247,7 +247,14 @@ class RecruitmentController extends Controller
     $folder = env('FTP_CV_FOLDER', 'cvs');
     $storagePath = ($folder === '.' || empty($folder)) ? $filename : rtrim($folder, '/') . '/' . $filename;
     
+    Log::info('Attempting manual FTP upload', ['path' => $storagePath, 'filename' => $filename]);
     $path = $file->storeAs('', $storagePath, 'ftp_cvs');
+    
+    if (!$path) {
+        Log::error('Manual FTP upload failed', ['path' => $storagePath]);
+    } else {
+        Log::info('Manual FTP upload successful', ['path' => $path]);
+    }
         
         // Auto-Extraction Logic
         $name = $request->name;
@@ -328,7 +335,14 @@ class RecruitmentController extends Controller
             $folder = env('FTP_CV_FOLDER', 'cvs');
             $storagePath = ($folder === '.' || empty($folder)) ? $filename : rtrim($folder, '/') . '/' . $filename;
             
+            Log::info('Attempting bulk FTP upload', ['path' => $storagePath, 'filename' => $filename]);
             $path = $file->storeAs('', $storagePath, 'ftp_cvs');
+            
+            if (!$path) {
+                Log::error('Bulk FTP upload failed', ['path' => $storagePath]);
+            } else {
+                Log::info('Bulk FTP upload successful', ['path' => $path]);
+            }
                 
                 // Extract data
                 $parser = new Parser();
