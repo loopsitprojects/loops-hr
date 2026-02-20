@@ -178,7 +178,7 @@
             </div>
         </div> 
         <!-- Summary Tiles -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mb-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mb-2">
             <!-- Total Applications -->
             <div class="bg-white dark:bg-slate-900 border border-white/10 dark:border-slate-800 rounded-xl p-5 shadow-md group hover:border-brand-teal/30 transition-all relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-16 h-16 bg-brand-teal/5 rounded-full -mr-4 -mt-4 group-hover:scale-150 transition-transform duration-700"></div>

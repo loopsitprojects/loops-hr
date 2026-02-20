@@ -43,6 +43,7 @@ class CandidateWebhookController extends Controller
             $phone = $this->getFieldValue($fields, 'phone_number') ?? $this->getFieldValue($fields, 'phone');
             $expectedSalary = $this->getFieldValue($fields, 'expected_salary');
             $postName = $this->getFieldValue($fields, 'post_name'); // This is the designation
+            $departmentName = $this->getFieldValue($fields, 'department'); // Extracted department name
             $cvUrl = $this->getFieldValue($fields, 'upload_your_cv') ?? $this->getFieldValue($fields, 'cv');
             if (is_array($cvUrl)) {
                 $cvUrl = $cvUrl[0] ?? null;
@@ -64,32 +65,60 @@ class CandidateWebhookController extends Controller
             $designation = null;
             $department = null;
             
-            if ($postName) {
-                $designation = Designation::where('name', 'LIKE', "%{$postName}%")->first();
-                
-                if (!$designation) {
-                    // Create new designation in default department
-                    $defaultDepartmentId = env('WPFORMS_DEFAULT_DEPARTMENT_ID', 1);
-                    $department = Department::find($defaultDepartmentId);
-                    
+            if ($departmentName || $postName) {
+                // If department name is provided, find or create it
+                if ($departmentName) {
+                    $department = Department::where('name', 'LIKE', "%{$departmentName}%")->first();
+                    if (!$department) {
+                        $department = Department::create(['name' => $departmentName]);
+                        Log::info('New department created from webhook', ['name' => $departmentName]);
+                    }
+                }
+
+                if ($postName) {
+                    // Try to find designation within the identified department, or any department if none identified
+                    $designationQuery = Designation::where('name', 'LIKE', "%{$postName}%");
                     if ($department) {
-                        $designation = Designation::create([
-                            'name' => $postName,
-                            'department_id' => $department->id,
-                            'status' => 'active'
-                        ]);
+                        $designationQuery->where('department_id', $department->id);
+                    }
+                    $designation = $designationQuery->first();
+                    
+                    if (!$designation) {
+                        // Use identified department or default
+                        if (!$department) {
+                            $defaultDepartmentId = env('WPFORMS_DEFAULT_DEPARTMENT_ID', 1);
+                            $department = Department::find($defaultDepartmentId) ?? Department::first();
+                        }
+                        
+                        if ($department) {
+                            $designation = Designation::create([
+                                'name' => $postName,
+                                'department_id' => $department->id,
+                                'is_active' => true
+                            ]);
+                            Log::info('New designation created from webhook', [
+                                'name' => $postName, 
+                                'department' => $department->name
+                            ]);
+                        }
                     }
                 }
                 
-                if ($designation) {
+                if ($designation && !$department) {
                     $department = $designation->department;
                 }
             }
 
-            // Use default department/designation if not found
+            // Use default if still not found
             if (!$designation) {
                 $designation = Designation::find(env('WPFORMS_DEFAULT_DESIGNATION_ID', 1));
-                $department = $designation ? $designation->department : Department::first();
+                if ($designation) {
+                    $department = $designation->department;
+                } else {
+                    $department = $department ?? Department::first();
+                    // If no designation but we have a department, we could either fail or use a generic one
+                    // For now, if we have a department, we'll let it be null or handle as needed
+                }
             }
 
             // Download and upload CV to FTP
