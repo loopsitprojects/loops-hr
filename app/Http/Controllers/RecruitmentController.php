@@ -243,7 +243,11 @@ class RecruitmentController extends Controller
     $originalName = $file->getClientOriginalName();
     $timestamp = now()->format('Ymd_His');
     $filename = $timestamp . '_' . $originalName;
-    $path = $file->storeAs('cvs', $filename, 'ftp_cvs');
+    
+    $folder = env('FTP_CV_FOLDER', 'cvs');
+    $storagePath = ($folder === '.' || empty($folder)) ? $filename : rtrim($folder, '/') . '/' . $filename;
+    
+    $path = $file->storeAs('', $storagePath, 'ftp_cvs');
         
         // Auto-Extraction Logic
         $name = $request->name;
@@ -316,11 +320,15 @@ class RecruitmentController extends Controller
 
         foreach ($request->file('cvs') as $file) {
             try {
-                // Generate filename: timestamp_originalname.pdf
+            // Generate filename: timestamp_originalname.pdf
             $originalName = $file->getClientOriginalName();
             $timestamp = now()->format('Ymd_His');
             $filename = $timestamp . '_' . $originalName;
-            $path = $file->storeAs('cvs', $filename, 'ftp_cvs');
+            
+            $folder = env('FTP_CV_FOLDER', 'cvs');
+            $storagePath = ($folder === '.' || empty($folder)) ? $filename : rtrim($folder, '/') . '/' . $filename;
+            
+            $path = $file->storeAs('', $storagePath, 'ftp_cvs');
                 
                 // Extract data
                 $parser = new Parser();

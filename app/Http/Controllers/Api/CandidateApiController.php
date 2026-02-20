@@ -30,7 +30,14 @@ class CandidateApiController extends Controller
 
         try {
             $file = $request->file('cv');
-            $path = $file->store('cvs', 'public');
+            $originalName = $file->getClientOriginalName();
+            $timestamp = now()->format('Ymd_His');
+            $filename = $timestamp . '_' . $originalName;
+            
+            $folder = env('FTP_CV_FOLDER', 'cvs');
+            $storagePath = ($folder === '.' || empty($folder)) ? $filename : rtrim($folder, '/') . '/' . $filename;
+            
+            $path = $file->storeAs('', $storagePath, 'ftp_cvs');
             
             // Fetch designation name for the redundant 'designation' string column
             // We need this because currently the system uses both ID and string name
