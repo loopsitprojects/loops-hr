@@ -257,8 +257,16 @@ class CandidateWebhookController extends Controller
 
         // Upload to FTP server
         $folder = env('FTP_CV_FOLDER', 'cvs');
-        $path = $folder . '/' . $filename;
+        
+        // If folder is '.' or empty, save directly in root
+        if ($folder === '.' || empty($folder)) {
+            $path = $filename;
+        } else {
+            $path = rtrim($folder, '/') . '/' . $filename;
+        }
+
         Storage::disk('ftp_cvs')->put($path, $response->body());
+        Log::info('File uploaded to FTP', ['path' => $path]);
 
         return $path;
     }
