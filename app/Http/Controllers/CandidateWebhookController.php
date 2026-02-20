@@ -158,11 +158,32 @@ class CandidateWebhookController extends Controller
 
             // Notify Admins
             $notifStart = microtime(true);
-            $admins = User::whereIn('role', [User::ROLE_SUPER_ADMIN, User::ROLE_HR_ADMIN])->get();
-            if ($admins->count() > 0) {
-                Notification::send($admins, new NewCandidateApplication($candidate));
+            
+            // 1. Get Global recipients (Super Admin, HR Admin, Operations Manager)
+            $globalRecipients = User::whereIn('role', [
+                User::ROLE_SUPER_ADMIN, 
+                User::ROLE_HR_ADMIN, 
+                User::ROLE_MANAGER
+            ])->get();
+
+            // 2. Get Departmental recipients (Managers, HODs)
+            $deptRecipients = collect();
+            if ($candidate->department_id) {
+                $deptRecipients = User::whereIn('role', [
+                    User::ROLE_MANAGERS, 
+                    User::ROLE_HOD
+                ])
+                ->where('department_id', $candidate->department_id)
+                ->get();
+            }
+
+            // Combine and ensure unique users
+            $allRecipients = $globalRecipients->concat($deptRecipients)->unique('id');
+
+            if ($allRecipients->count() > 0) {
+                Notification::send($allRecipients, new NewCandidateApplication($candidate));
                 Log::info('Notifications sent', [
-                    'admin_count' => $admins->count(),
+                    'recipients_count' => $allRecipients->count(),
                     'duration' => round(microtime(true) - $notifStart, 2) . 's'
                 ]);
             }
