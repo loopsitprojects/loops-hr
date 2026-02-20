@@ -17,9 +17,12 @@ class CandidateWebhookController extends Controller
 {
     public function handleWPFormsWebhook(Request $request)
     {
+        $startTime = microtime(true);
         try {
-            Log::info('Raw Webhook Body', ['content' => $request->getContent()]);
-            Log::info('Webhook Headers', $request->headers->all());
+            Log::info('Webhook Received', [
+                'headers' => $request->headers->all(),
+                'payload' => $request->all()
+            ]);
 
             // Validate API token if set
             $expectedToken = env('WPFORMS_WEBHOOK_TOKEN');
@@ -28,28 +31,34 @@ class CandidateWebhookController extends Controller
                 return response()->json(['error' => 'Unauthorized'], 401);
             }
 
-            // Extract form data from WPForms webhook payload
+            // Extract form data
             $fields = $request->input('fields', []);
-            
-            // If fields is empty, maybe data is at root level
             if (empty($fields)) {
-                Log::info('Fields array is empty, using root request data');
                 $fields = $request->all();
             }
             
-            // Map WPForms field IDs to data (adjust these IDs based on actual WPForms field IDs)
+            // Map fields with expanded search terms
             $name = $this->getFieldValue($fields, 'full_name') ?? $this->getFieldValue($fields, 'name');
             $email = $this->getFieldValue($fields, 'email');
             $phone = $this->getFieldValue($fields, 'phone_number') ?? $this->getFieldValue($fields, 'phone');
-            $expectedSalary = $this->getFieldValue($fields, 'expected_salary');
-            $postName = $this->getFieldValue($fields, 'post_name'); // This is the designation
-            $departmentName = $this->getFieldValue($fields, 'department'); // Extracted department name
-            $cvUrl = $this->getFieldValue($fields, 'upload_your_cv') ?? $this->getFieldValue($fields, 'cv');
+            
+            // Robust salary detection
+            $expectedSalary = $this->getFieldValue($fields, 'expected_salary') 
+                           ?? $this->getFieldValue($fields, 'salary')
+                           ?? $this->getFieldValue($fields, 'expected_pay');
+            
+            $postName = $this->getFieldValue($fields, 'post_name') ?? $this->getFieldValue($fields, 'designation');
+            $departmentName = $this->getFieldValue($fields, 'department');
+            
+            $cvUrl = $this->getFieldValue($fields, 'upload_your_cv') 
+                  ?? $this->getFieldValue($fields, 'cv')
+                  ?? $this->getFieldValue($fields, 'resume');
+            
             if (is_array($cvUrl)) {
                 $cvUrl = $cvUrl[0] ?? null;
             }
 
-            $message = $this->getFieldValue($fields, 'message');
+            $message = $this->getFieldValue($fields, 'message') ?? $this->getFieldValue($fields, 'comments');
 
             // Validate required fields
             if (!$name || !$email) {
@@ -61,73 +70,72 @@ class CandidateWebhookController extends Controller
                 return response()->json(['error' => 'Missing required fields: name and email'], 400);
             }
 
-            // Find or create designation based on Post Name
+            // Find or create designation and department
             $designation = null;
             $department = null;
             
-            if ($departmentName || $postName) {
-                // If department name is provided, find or create it
-                if ($departmentName) {
-                    $department = Department::where('name', 'LIKE', "%{$departmentName}%")->first();
-                    if (!$department) {
-                        $department = Department::create(['name' => $departmentName]);
-                        Log::info('New department created from webhook', ['name' => $departmentName]);
-                    }
-                }
-
-                if ($postName) {
-                    // Try to find designation within the identified department, or any department if none identified
-                    $designationQuery = Designation::where('name', 'LIKE', "%{$postName}%");
-                    if ($department) {
-                        $designationQuery->where('department_id', $department->id);
-                    }
-                    $designation = $designationQuery->first();
-                    
-                    if (!$designation) {
-                        // Use identified department or default
-                        if (!$department) {
-                            $defaultDepartmentId = env('WPFORMS_DEFAULT_DEPARTMENT_ID', 1);
-                            $department = Department::find($defaultDepartmentId) ?? Department::first();
-                        }
-                        
-                        if ($department) {
-                            $designation = Designation::create([
-                                'name' => $postName,
-                                'department_id' => $department->id,
-                                'is_active' => true
-                            ]);
-                            Log::info('New designation created from webhook', [
-                                'name' => $postName, 
-                                'department' => $department->name
-                            ]);
-                        }
-                    }
-                }
-                
-                if ($designation && !$department) {
-                    $department = $designation->department;
+            // 1. Identify or Create Department
+            if ($departmentName) {
+                $department = Department::where('name', 'LIKE', trim($departmentName))->first();
+                if (!$department) {
+                    $department = Department::create(['name' => trim($departmentName)]);
+                    Log::info('New department created', ['name' => $departmentName]);
                 }
             }
 
-            // Use default if still not found
+            // 2. Identify or Create Designation in that Department
+            if ($postName) {
+                $postName = trim($postName);
+                
+                // If we have a department, look strictly there first
+                if ($department) {
+                    $designation = Designation::where('name', 'LIKE', $postName)
+                        ->where('department_id', $department->id)
+                        ->first();
+                } else {
+                    // Otherwise look anywhere
+                    $designation = Designation::where('name', 'LIKE', $postName)->first();
+                }
+
+                if (!$designation) {
+                    // Create designation in the identified department (or default)
+                    if (!$department) {
+                        $defaultDepartmentId = env('WPFORMS_DEFAULT_DEPARTMENT_ID', 1);
+                        $department = Department::find($defaultDepartmentId) ?? Department::first();
+                    }
+                    
+                    if ($department) {
+                        $designation = Designation::create([
+                            'name' => $postName,
+                            'department_id' => $department->id,
+                            'is_active' => true
+                        ]);
+                        Log::info('New designation created', [
+                            'name' => $postName, 
+                            'department' => $department->name
+                        ]);
+                    }
+                }
+            }
+
+            // Use default fallback if still no designation
             if (!$designation) {
                 $designation = Designation::find(env('WPFORMS_DEFAULT_DESIGNATION_ID', 1));
-                if ($designation) {
-                    $department = $designation->department;
-                } else {
-                    $department = $department ?? Department::first();
-                    // If no designation but we have a department, we could either fail or use a generic one
-                    // For now, if we have a department, we'll let it be null or handle as needed
-                }
+            }
+            
+            if ($designation && !$department) {
+                $department = $designation->department;
             }
 
-            // Download and upload CV to FTP
+            // Download and upload CV
             $cvPath = null;
             if ($cvUrl) {
+                $cvStart = microtime(true);
                 try {
                     $cvPath = $this->downloadAndUploadCV($cvUrl, $name);
+                    Log::info('CV processed', ['duration' => round(microtime(true) - $cvStart, 2) . 's']);
                 } catch (\Exception $e) {
-                    Log::error('Failed to download/upload CV', ['url' => $cvUrl, 'error' => $e->getMessage()]);
+                    Log::error('CV processing failed', ['url' => $cvUrl, 'error' => $e->getMessage()]);
                 }
             }
 
@@ -136,8 +144,8 @@ class CandidateWebhookController extends Controller
                 'name' => $name,
                 'email' => $email,
                 'phone' => $phone,
-                'expected_salary' => $expectedSalary ? str_replace(',', '', $expectedSalary) : null,
-                'designation' => $designation ? $designation->name : $postName,
+                'expected_salary' => $expectedSalary ? preg_replace('/[^0-9.]/', '', $expectedSalary) : null,
+                'designation' => $designation ? $designation->name : ($postName ?? 'Generic'),
                 'designation_id' => $designation ? $designation->id : null,
                 'department_id' => $department ? $department->id : null,
                 'cv_path' => $cvPath,
@@ -146,26 +154,32 @@ class CandidateWebhookController extends Controller
                 'status' => 'pending',
             ]);
 
-            Log::info('Candidate created from WPForms', ['candidate_id' => $candidate->id]);
+            Log::info('Candidate created', ['id' => $candidate->id]);
 
-            // Send notification to HR Admins and Super Admins
+            // Notify Admins
+            $notifStart = microtime(true);
             $admins = User::whereIn('role', [User::ROLE_SUPER_ADMIN, User::ROLE_HR_ADMIN])->get();
-            
             if ($admins->count() > 0) {
                 Notification::send($admins, new NewCandidateApplication($candidate));
-                Log::info('Notification sent to admins', ['admin_count' => $admins->count()]);
+                Log::info('Notifications sent', [
+                    'admin_count' => $admins->count(),
+                    'duration' => round(microtime(true) - $notifStart, 2) . 's'
+                ]);
             }
+
+            $totalDuration = round(microtime(true) - $startTime, 2);
+            Log::info('Webhook completed', ['total_duration' => $totalDuration . 's']);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Candidate created successfully',
-                'candidate_id' => $candidate->id
+                'candidate_id' => $candidate->id,
+                'processing_time' => $totalDuration . 's'
             ], 201);
 
         } catch (\Exception $e) {
-            Log::error('WPForms webhook error', [
+            Log::error('Webhook failed', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => substr($e->getTraceAsString(), 0, 500)
             ]);
 
             return response()->json([
