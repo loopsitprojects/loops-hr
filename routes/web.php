@@ -103,3 +103,42 @@ require __DIR__.'/auth.php';
 // Public Assessment Portal
 Route::get('/assessment/{token}', [\App\Http\Controllers\AssessmentController::class, 'show'])->name('assessment.show');
 Route::post('/assessment/{token}/submit', [\App\Http\Controllers\AssessmentController::class, 'submit'])->name('assessment.submit');
+
+// Diagnostic FTP Test
+Route::get('/test-ftp', function () {
+    try {
+        $disk = \Illuminate\Support\Facades\Storage::disk('ftp_cvs');
+        $filename = 'test_connection_' . time() . '.txt';
+        $content = 'FTP Connection Test Successful at ' . now()->toDateTimeString();
+        
+        $path = env('FTP_CV_FOLDER', 'cvs');
+        if ($path === '.' || empty($path)) {
+            $fullPath = $filename;
+        } else {
+            $fullPath = rtrim($path, '/') . '/' . $filename;
+        }
+
+        echo "<h3>FTP Diagnostics</h3>";
+        echo "<b>Host:</b> " . env('FTP_HOST') . "<br>";
+        echo "<b>Username:</b> " . env('FTP_USERNAME') . "<br>";
+        echo "<b>Root:</b> " . env('FTP_ROOT') . "<br>";
+        echo "<b>Target Path:</b> " . $fullPath . "<br><br>";
+
+        echo "Attempting to write file... ";
+        $success = $disk->put($fullPath, $content);
+
+        if ($success) {
+            echo "<span style='color: green;'>SUCCESS!</span><br>";
+            echo "<b>Public URL (derived):</b> <a href='" . config('filesystems.disks.ftp_cvs.url') . "/" . $fullPath . "' target='_blank'>" . config('filesystems.disks.ftp_cvs.url') . "/" . $fullPath . "</a><br>";
+            
+            echo "<br>Listing files in root:<br>";
+            print_r($disk->files('/'));
+        } else {
+            echo "<span style='color: red;'>FAILED (Returned false)</span>";
+        }
+
+    } catch (\Exception $e) {
+        echo "<span style='color: red;'>ERROR:</span> " . $e->getMessage();
+        echo "<pre>" . $e->getTraceAsString() . "</pre>";
+    }
+});
