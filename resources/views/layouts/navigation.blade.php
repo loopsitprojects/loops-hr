@@ -393,13 +393,54 @@
                     }
                 });
                 
-                // Show desktop notification if new notifications arrived
+                // Show desktop notification and update list if new notifications arrived
                 if (data.count > lastNotificationCount && lastNotificationCount >= 0) {
                     if (Notification.permission === 'granted') {
                         new Notification('New HR Notification', {
                             body: data.notifications[0]?.message || 'You have new notifications',
                             icon: '/loops-icon.png'
                         });
+                    }
+
+                    // Update the actual notification list HTML
+                    const list = document.getElementById('notifications-list');
+                    if (list && data.notifications.length > 0) {
+                        let html = '';
+                        data.notifications.forEach(n => {
+                            html += `
+                                <div id="notification-${n.id}" class="notification-item px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all duration-300 border-b border-gray-100 dark:border-slate-700/50">
+                                    <div class="flex items-start gap-4">
+                                        <div class="flex-shrink-0 mt-1">
+                                            <div class="w-10 h-10 rounded-full bg-brand-teal/10 dark:bg-teal-500/20 flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-brand-teal dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+                                                ${n.message}
+                                            </p>
+                                            ${n.designation ? `<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">for <span class="font-medium text-gray-700 dark:text-gray-300">${n.designation}</span></p>` : ''}
+                                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-2 flex items-center gap-1">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                ${n.time}
+                                            </p>
+                                            <div class="flex items-center gap-4 mt-3">
+                                                <a href="${n.url}" class="text-xs font-bold text-brand-teal dark:text-teal-400 hover:underline px-3 py-1.5 bg-brand-teal/5 dark:bg-teal-500/10 rounded-lg transition-colors whitespace-nowrap">
+                                                    View Candidate
+                                                </a>
+                                                <button type="button" onclick="event.stopPropagation(); markNotificationAsRead('${n.id}')" class="text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 px-2 py-1.5 whitespace-nowrap transition-colors cursor-pointer">
+                                                    Mark as read
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        list.innerHTML = html;
+                        updateNotificationBadges(data.count);
                     }
                 }
                 
