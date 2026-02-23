@@ -156,37 +156,35 @@ class CandidateWebhookController extends Controller
 
             Log::info('Candidate created from WPForms', ['candidate_id' => $candidate->id]);
 
-            // Notify Admins
+            // Send email notification ONLY to the central HR email address
             $notifStart = microtime(true);
-            
-            // 1. Get Global recipients (Super Admin, HR Admin, Operations Manager)
+            Notification::route('mail', 'careers@loopsintegrated.com')
+                ->notify(new NewCandidateApplication($candidate));
+
+            // In-app notification: global roles (always) + departmental roles (HOD/Managers of this dept)
             $globalRecipients = User::whereIn('role', [
-                User::ROLE_SUPER_ADMIN, 
-                User::ROLE_HR_ADMIN, 
-                User::ROLE_MANAGER
+                User::ROLE_SUPER_ADMIN,
+                User::ROLE_HR_ADMIN,
+                User::ROLE_MANAGER,
             ])->get();
 
-            // 2. Get Departmental recipients (Managers, HODs)
             $deptRecipients = collect();
             if ($candidate->department_id) {
-                $deptRecipients = User::whereIn('role', [
-                    User::ROLE_MANAGERS, 
-                    User::ROLE_HOD
-                ])
-                ->where('department_id', $candidate->department_id)
-                ->get();
+                $deptRecipients = User::whereIn('role', [User::ROLE_MANAGERS, User::ROLE_HOD])
+                    ->where('department_id', $candidate->department_id)
+                    ->get();
             }
 
-            // Combine and ensure unique users
             $allRecipients = $globalRecipients->concat($deptRecipients)->unique('id');
-
             if ($allRecipients->count() > 0) {
                 Notification::send($allRecipients, new NewCandidateApplication($candidate));
-                Log::info('Notifications sent', [
-                    'recipients_count' => $allRecipients->count(),
-                    'duration' => round(microtime(true) - $notifStart, 2) . 's'
-                ]);
             }
+
+            Log::info('Notifications sent', [
+                'email_recipient' => 'careers@loopsintegrated.com',
+                'db_recipients_count' => $allRecipients->count(),
+                'duration' => round(microtime(true) - $notifStart, 2) . 's'
+            ]);
 
             return response()->json([
                 'success' => true,

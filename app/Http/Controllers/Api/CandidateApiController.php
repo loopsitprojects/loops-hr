@@ -61,9 +61,28 @@ class CandidateApiController extends Controller
                 'hod_comment' => null,
             ]);
 
-            // Notify HR Admin and Super Admin
-            $recipients = User::whereIn('role', [User::ROLE_SUPER_ADMIN, User::ROLE_HR_ADMIN])->get();
-            Notification::send($recipients, new NewCandidateApplication($candidate));
+            // Send email notification ONLY to the central HR email address
+            Notification::route('mail', 'careers@loopsintegrated.com')
+                ->notify(new NewCandidateApplication($candidate));
+
+            // In-app notification: global roles (always) + departmental roles (HOD/Managers of this dept)
+            $globalRecipients = User::whereIn('role', [
+                User::ROLE_SUPER_ADMIN,
+                User::ROLE_HR_ADMIN,
+                User::ROLE_MANAGER,
+            ])->get();
+
+            $deptRecipients = collect();
+            if ($candidate->department_id) {
+                $deptRecipients = User::whereIn('role', [User::ROLE_MANAGERS, User::ROLE_HOD])
+                    ->where('department_id', $candidate->department_id)
+                    ->get();
+            }
+
+            $allRecipients = $globalRecipients->concat($deptRecipients)->unique('id');
+            if ($allRecipients->count() > 0) {
+                Notification::send($allRecipients, new NewCandidateApplication($candidate));
+            }
 
             return response()->json([
                 'success' => true,

@@ -29,11 +29,15 @@ class NewCandidateApplication extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        // 'mail' is excluded here; email is sent separately to careers@loopsintegrated.com
+        // in each controller using Notification::route('mail', ...) so only that fixed
+        // address receives the email, regardless of which users exist in the database.
+        return ['database'];
     }
 
     /**
      * Get the mail representation of the notification.
+     * This is used when sending via Notification::route('mail', ...) to the HR email address.
      */
     public function toMail(object $notifiable): MailMessage
     {
@@ -45,7 +49,7 @@ class NewCandidateApplication extends Notification implements ShouldQueue
 
         return (new MailMessage)
                     ->subject('New Candidate Application: ' . $this->candidate->name)
-                    ->greeting('Hello ' . $notifiable->name . ',')
+                    ->greeting('Hello HR Team,')
                     ->line('A new candidate has applied for the position of **' . $this->candidate->designation . '**.')
                     ->line('**Name:** ' . $this->candidate->name)
                     ->line('**Email:** ' . $this->candidate->email)
