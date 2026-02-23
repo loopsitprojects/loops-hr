@@ -8,50 +8,44 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- HR Status Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-                <!-- Active Candidates -->
-                <div class="bg-white dark:bg-slate-900 p-7 rounded-3xl shadow-premium border border-gray-100 dark:border-slate-800 hover:shadow-soft transition-all duration-300 group">
-                    <div class="flex items-center">
-                        <div class="p-4 rounded-2xl bg-orange-50 dark:bg-orange-500/20 text-orange-500 dark:text-orange-400 group-hover:bg-orange-500 group-hover:text-white transition-colors duration-300">
-                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-5">
-                            <p class="text-xs font-black text-brand-slate dark:text-slate-400 uppercase tracking-widest mb-1.5">Total Candidates</p>
-                            <p class="text-3xl font-black text-brand-navy dark:text-white">{{ \App\Models\Candidate::where('is_archived', false)->count() }}</p>
-                        </div>
+            <!-- HR Status Mini-Cards -->
+            <div class="flex flex-wrap gap-3 mb-8">
+                <!-- Total Candidates -->
+                <div class="flex items-center gap-3 bg-white dark:bg-slate-900 px-4 py-3 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 hover:shadow-md transition-all duration-200 group">
+                    <div class="p-2 rounded-xl bg-orange-50 dark:bg-orange-500/20 text-orange-500 dark:text-orange-400 group-hover:bg-orange-500 group-hover:text-white transition-colors duration-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">Total Candidates</p>
+                        <p class="text-xl font-black text-brand-navy dark:text-white leading-none">{{ \App\Models\Candidate::where('is_archived', false)->count() }}</p>
                     </div>
                 </div>
 
                 <!-- Archived Candidates -->
-                <div class="bg-white dark:bg-slate-900 p-7 rounded-3xl shadow-premium border border-gray-100 dark:border-slate-800 hover:shadow-soft transition-all duration-300 group">
-                    <div class="flex items-center">
-                        <div class="p-4 rounded-2xl bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 group-hover:bg-slate-500 group-hover:text-white transition-colors duration-300">
-                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-5">
-                            <p class="text-xs font-black text-brand-slate dark:text-slate-400 uppercase tracking-widest mb-1.5">Archived Candidates</p>
-                            <p class="text-3xl font-black text-brand-navy dark:text-white">{{ \App\Models\Candidate::where('is_archived', true)->count() }}</p>
-                        </div>
+                <div class="flex items-center gap-3 bg-white dark:bg-slate-900 px-4 py-3 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 hover:shadow-md transition-all duration-200 group">
+                    <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 group-hover:bg-slate-500 group-hover:text-white transition-colors duration-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">Archived</p>
+                        <p class="text-xl font-black text-brand-navy dark:text-white leading-none">{{ \App\Models\Candidate::where('is_archived', true)->count() }}</p>
                     </div>
                 </div>
 
-                <!-- Active Designations -->
-                <div class="bg-white dark:bg-slate-900 p-7 rounded-3xl shadow-premium border border-gray-100 dark:border-slate-800 hover:shadow-soft transition-all duration-300 group">
-                    <div class="flex items-center">
-                        <div class="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
-                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-5">
-                            <p class="text-xs font-black text-brand-slate dark:text-slate-400 uppercase tracking-widest mb-1.5">Active Job Roles</p>
-                            <p class="text-3xl font-black text-brand-navy dark:text-white">{{ \App\Models\Designation::where('is_active', true)->count() }}</p>
-                        </div>
+                <!-- Active Job Roles -->
+                <div class="flex items-center gap-3 bg-white dark:bg-slate-900 px-4 py-3 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 hover:shadow-md transition-all duration-200 group">
+                    <div class="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">Active Job Roles</p>
+                        <p class="text-xl font-black text-brand-navy dark:text-white leading-none">{{ \App\Models\Designation::where('is_active', true)->count() }}</p>
                     </div>
                 </div>
             </div>
