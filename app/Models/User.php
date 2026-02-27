@@ -64,6 +64,20 @@ class User extends Authenticatable
         return $this->role === self::ROLE_HOD;
     }
 
+    /**
+     * Route notifications for the mail channel.
+     *
+     * @return string|array|null
+     */
+    public function routeNotificationForMail()
+    {
+        if ($this->email === 'admin@loopshr.com') {
+            return null;
+        }
+
+        return $this->email;
+    }
+
     public function canViewAllDepartments(): bool
     {
         return $this->isAdmin() || $this->isHR() || $this->isManager() || $this->isManagers();

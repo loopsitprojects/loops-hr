@@ -390,8 +390,8 @@
                                         <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
                                             @if(!$showArchived)
                                             <button onclick="sendRejection({{ $candidate->id }}, '{{ $candidate->name }}')" 
-                                                    class="inline-flex items-center justify-center {{ $candidate->stage == 'rejected' ? 'text-red-500' : 'text-slate-400 dark:text-slate-500' }} hover:text-red-600 transition-colors group" 
-                                                    title="{{ $candidate->stage == 'rejected' ? 'Already Rejected' : 'Send Rejection Email' }}">
+                                                    class="inline-flex items-center justify-center {{ $candidate->status == 'Rejected' ? 'text-red-500' : 'text-slate-400 dark:text-slate-500' }} hover:text-red-600 transition-colors group" 
+                                                    title="{{ $candidate->status == 'Rejected' ? 'Already Rejected' : 'Send Rejection Email' }}">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                                 </svg>
@@ -1759,6 +1759,12 @@
                                 <!-- Individual availability cards injected here -->
                             </div>
                             <div id="avail-error" class="hidden text-[10px] text-red-500 font-bold uppercase tracking-wider mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30"></div>
+                        </div>
+
+                        <!-- Custom Message -->
+                        <div>
+                            <label class="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Custom Message (Optional)</label>
+                            <textarea name="custom_message" rows="4" placeholder="Add a personalized note to the invitation..." class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-5 py-4 text-sm focus:ring-2 focus:ring-brand-teal/20 transition-all text-slate-700 dark:text-white placeholder:text-slate-400 resize-none custom-scrollbar"></textarea>
                         </div>
 
                         <!-- Guests -->

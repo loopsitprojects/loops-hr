@@ -1072,7 +1072,12 @@ class RecruitmentController extends Controller
             $interviewerNames = $interviewers->pluck('name')->implode(', ');
             
             $summary = "Interview: " . $candidate->name . " - " . $designationName;
-            $description = "Dear {$candidate->name},\n\n" .
+            
+            $customMessage = $request->input('custom_message');
+            $customMessagePart = $customMessage ? $customMessage . "\n\n--------------------------\n\n" : "";
+
+            $description = $customMessagePart . 
+                          "Dear {$candidate->name},\n\n" .
                           "We are pleased to invite you to an interview for the above mentioned vacancy ({$designationName}) at Loops Integrated. Please find the link to the office location below.\n\n" .
                           "https://maps.app.goo.gl/X9Z2b3xaEZS4FTr7A\n\n" .
                           "Should you have any questions or concerns, please do not hesitate to contact me.\n\n" .
@@ -1109,7 +1114,14 @@ class RecruitmentController extends Controller
             // Sync all interviewers to pivot table
             $interview->interviewers()->sync($interviewerIds);
 
-            $candidate->update(['stage' => '1st_interview', 'status' => 'Interview Scheduled']);
+            // Update candidate stage ONLY if they haven't reached interview stage yet
+        $earlyStages = ['default', 'shortlisted', 'test_sent', 'test_received'];
+        if (in_array($candidate->stage, $earlyStages)) {
+            $candidate->update([
+                'stage' => '1st_interview', 
+                'status' => 'Interview Scheduled'
+            ]);
+        }
 
             // Note: Manual email sending is disabled because Google Calendar sends the "proper" invitation
             // with RSVP buttons when 'sendUpdates' is set to 'all' in GoogleCalendarService.
