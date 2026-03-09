@@ -41,7 +41,7 @@ class AnalyticsController extends Controller
 
         $month = $request->input('month', date('Y-m'));
         $year = $request->input('year', date('Y'));
-        $reportType = $request->input('report_type', 'monthly');
+        $reportType = $request->input('report_type', 'annual');
         $designationFilter = $request->input('designation_filter', 'active');
         
         if ($reportType === 'annual') {
@@ -93,7 +93,7 @@ class AnalyticsController extends Controller
 
         $month = $request->input('month', date('Y-m'));
         $year = $request->input('year', date('Y'));
-        $reportType = $request->input('report_type', 'monthly');
+        $reportType = $request->input('report_type', 'annual');
         $designationFilter = $request->input('designation_filter', 'active');
         $format = $request->input('format', 'pdf'); // Accept format from request, default to PDF
 
@@ -123,7 +123,7 @@ class AnalyticsController extends Controller
                 // BOM for Excel
                 fputs($file, "\xEF\xBB\xBF"); 
                 fputcsv($file, [
-                    'Designation', 'Total Applicants', 'Shortlisted', 'Tasks', 'Test', '1st Int', '2nd Int', 'Offer', 'Accepted', 'Joined', 'Rej', 'Avg Speed', 'Avg Salary'
+                    'Designation', 'Total Applicants', 'Shortlisted', 'Tasks', 'Test Sent', 'Test Rec', '1st Int', '2nd Int', 'Offer', 'Accepted', 'Joined', 'Rej', 'Avg Speed', 'Avg Salary'
                 ]);
 
                 foreach ($data as $row) {
@@ -132,7 +132,8 @@ class AnalyticsController extends Controller
                         $row->total_applications,
                         $row->stages['shortlisted'] ?? 0,
                         $row->total_tasks,
-                        $row->stages['test'] ?? 0,
+                        $row->stages['test_sent'] ?? 0,
+                        $row->stages['test_received'] ?? 0,
                         $row->stages['1st_interview'] ?? 0,
                         $row->stages['2nd_interview'] ?? 0,
                         $row->stages['offer_sent'] ?? 0,

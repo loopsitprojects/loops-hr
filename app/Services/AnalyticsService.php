@@ -55,7 +55,7 @@ class AnalyticsService
                 DB::raw('count(*) as active_count')
             )
             ->join('designations', 'candidates.designation_id', '=', 'designations.id')
-            ->whereIn('candidates.stage', ['shortlisted', 'test', '1st_interview', '2nd_interview'])
+            ->whereIn('candidates.stage', ['shortlisted', 'test', 'test_sent', 'test_received', '1st_interview', '2nd_interview'])
             ->groupBy('designations.name')
             ->orderByDesc('active_count')
             ->get();
@@ -292,8 +292,8 @@ class AnalyticsService
 
         // Sequence: Applied (Total) -> Shortlisted -> Test -> Interviews -> Offer -> Joined
         $applied = array_sum($counts);
-        $shortlisted = ($counts['shortlisted'] ?? 0) + ($counts['test'] ?? 0) + ($counts['1st_interview'] ?? 0) + ($counts['2nd_interview'] ?? 0) + ($counts['offer_sent'] ?? 0) + ($counts['offer_accepted'] ?? 0) + ($counts['joined'] ?? 0);
-        $test = ($counts['test'] ?? 0) + ($counts['1st_interview'] ?? 0) + ($counts['2nd_interview'] ?? 0) + ($counts['offer_sent'] ?? 0) + ($counts['offer_accepted'] ?? 0) + ($counts['joined'] ?? 0);
+        $shortlisted = ($counts['shortlisted'] ?? 0) + ($counts['test'] ?? 0) + ($counts['test_sent'] ?? 0) + ($counts['test_received'] ?? 0) + ($counts['1st_interview'] ?? 0) + ($counts['2nd_interview'] ?? 0) + ($counts['offer_sent'] ?? 0) + ($counts['offer_accepted'] ?? 0) + ($counts['joined'] ?? 0);
+        $test = ($counts['test'] ?? 0) + ($counts['test_sent'] ?? 0) + ($counts['test_received'] ?? 0) + ($counts['1st_interview'] ?? 0) + ($counts['2nd_interview'] ?? 0) + ($counts['offer_sent'] ?? 0) + ($counts['offer_accepted'] ?? 0) + ($counts['joined'] ?? 0);
         $interview = ($counts['1st_interview'] ?? 0) + ($counts['2nd_interview'] ?? 0) + ($counts['offer_sent'] ?? 0) + ($counts['offer_accepted'] ?? 0) + ($counts['joined'] ?? 0);
         $offer = ($counts['offer_sent'] ?? 0) + ($counts['offer_accepted'] ?? 0) + ($counts['joined'] ?? 0);
         $joined = $counts['joined'] ?? 0;
