@@ -20,27 +20,26 @@ class AnalyticsService
     {
         $query = Candidate::query()
             ->select(
-                DB::raw('DATE_FORMAT(candidates.created_at, "%Y-%m") as month'), // Using created_at or finalized_at? User said "Hired... grouped by... Month". Usually means when they were hired.
+                DB::raw('DATE_FORMAT(COALESCE(candidates.finalized_at, candidates.updated_at), "%Y-%m") as month'),
                 'departments.name as department_name',
                 DB::raw('count(*) as total')
             )
             ->join('departments', 'candidates.department_id', '=', 'departments.id')
-            ->where('candidates.stage', 'joined');
+            ->whereIn('candidates.stage', ['joined', 'offer_accepted']);
 
         if ($startDate && $endDate) {
-            // Filter by when they were hired? Or created? 
-            // "Hiring Volume" usually implies the act of hiring happened in that period.
-            // If we have finalized_at, we should use that.
-            $query->whereBetween('candidates.finalized_at', [$startDate, $endDate]);
+            $query->where(function($q) use ($startDate, $endDate) {
+                $q->whereBetween('candidates.finalized_at', [$startDate, $endDate])
+                  ->orWhere(function($sq) use ($startDate, $endDate) {
+                      $sq->whereNull('candidates.finalized_at')
+                         ->whereBetween('candidates.updated_at', [$startDate, $endDate]);
+                  });
+            });
         }
 
         return $query->groupBy('month', 'department_name')
             ->orderBy('month')
             ->get();
-            
-        // Note: Creates_at in select might need to be finalized_at if we group by hiring month.
-        // I'll adjust to use finalized_at for the grouping if possible, falling back to created_at if null?
-        // Migration 2026_01_13_055637 added finalized_at.
     }
 
     /**
@@ -75,7 +74,7 @@ class AnalyticsService
             ->join('departments', 'candidates.department_id', '=', 'departments.id')
             ->whereNotNull('candidates.finalized_at')
             ->whereNotNull('candidates.created_at')
-            ->where('candidates.stage', 'joined'); // Only count successful hires? "Time-to-Hire" usually implies hired candidates.
+            ->whereIn('candidates.stage', ['joined', 'offer_accepted']);
 
         if ($startDate && $endDate) {
             $query->whereBetween('candidates.finalized_at', [$startDate, $endDate]);
@@ -100,15 +99,25 @@ class AnalyticsService
             
         $subQueryHired = DB::table('candidates')
             ->select('department_id', DB::raw('count(*) as count'))
-            ->where('stage', 'joined')
-            ->when($startDate, fn($q) => $q->whereBetween('finalized_at', [$startDate, $endDate]))
+            ->whereIn('stage', ['joined', 'offer_accepted'])
+            ->where('is_archived', false)
+            ->when($startDate, function($q) use ($startDate, $endDate) {
+                $q->where(function($sq) use ($startDate, $endDate) {
+                    $sq->whereBetween('finalized_at', [$startDate, $endDate])
+                      ->orWhere(function($ssq) use ($startDate, $endDate) {
+                          $ssq->whereNull('finalized_at')
+                             ->whereBetween('updated_at', [$startDate, $endDate]);
+                      });
+                });
+            })
             ->groupBy('department_id');
             
         $subQueryAvg = DB::table('candidates')
             ->select('department_id', DB::raw('AVG(DATEDIFF(finalized_at, created_at)) as avg_days'))
-            ->where('stage', 'joined')
-             ->when($startDate, fn($q) => $q->whereBetween('finalized_at', [$startDate, $endDate]))
-             ->groupBy('department_id');
+            ->whereIn('stage', ['joined', 'offer_accepted'])
+            ->where('is_archived', false)
+            ->when($startDate, fn($q) => $q->whereBetween('finalized_at', [$startDate, $endDate]))
+            ->groupBy('department_id');
              
         $results = DB::table('departments')
             ->leftJoinSub($subQueryApplicants, 'applicants', 'departments.id', '=', 'applicants.department_id')
@@ -156,7 +165,7 @@ class AnalyticsService
         // Get avg time to hire per designation
         $avgTimeQuery = DB::table('candidates')
             ->select('designation_id', DB::raw('AVG(DATEDIFF(finalized_at, created_at)) as avg_days'))
-            ->where('stage', 'joined')
+            ->whereIn('stage', ['joined', 'offer_accepted'])
             ->whereNotNull('finalized_at')
             ->whereNotNull('created_at');
 
@@ -220,13 +229,28 @@ class AnalyticsService
      */
     public function getOverviewStats(?int $departmentId = null, ?string $startDate = null, ?string $endDate = null): array
     {
-        $baseQuery = Candidate::query()->where('is_archived', false);
-        if ($departmentId) $baseQuery->where('department_id', $departmentId);
-        if ($startDate && $endDate) $baseQuery->whereBetween('created_at', [$startDate, $endDate]);
+        // Total Applications: based on created_at (new intake)
+        $totalAppsQuery = Candidate::query()->where('is_archived', false);
+        if ($departmentId) $totalAppsQuery->where('department_id', $departmentId);
+        if ($startDate && $endDate) $totalAppsQuery->whereBetween('created_at', [$startDate, $endDate]);
+        $totalApps = $totalAppsQuery->count();
 
-        $stats = (clone $baseQuery)
-            ->selectRaw('count(*) as total')
-            ->selectRaw('sum(case when stage = "joined" then 1 else 0 end) as joined')
+        // Hired & Rejected: based on finalized_at (or updated_at as fallback)
+        $terminalQuery = Candidate::query()->where('is_archived', false);
+        if ($departmentId) $terminalQuery->where('department_id', $departmentId);
+        
+        if ($startDate && $endDate) {
+            $terminalQuery->where(function($q) use ($startDate, $endDate) {
+                $q->whereBetween('finalized_at', [$startDate, $endDate])
+                  ->orWhere(function($sq) use ($startDate, $endDate) {
+                      $sq->whereNull('finalized_at')
+                         ->whereIn('stage', ['joined', 'offer_accepted', 'rejected'])
+                         ->whereBetween('updated_at', [$startDate, $endDate]);
+                  });
+            });
+        }
+
+        $stats = $terminalQuery->selectRaw('sum(case when stage IN ("joined", "offer_accepted") then 1 else 0 end) as joined')
             ->selectRaw('sum(case when stage = "rejected" then 1 else 0 end) as rejected')
             ->first();
 
@@ -235,7 +259,7 @@ class AnalyticsService
         $activeDesignationsCount = $activeDesignationsCount->count();
 
         $avgTimeQuery = Candidate::query()
-            ->where('stage', 'joined')
+            ->whereIn('stage', ['joined', 'offer_accepted'])
             ->whereNotNull('finalized_at')
             ->whereNotNull('created_at');
         if ($departmentId) $avgTimeQuery->where('department_id', $departmentId);
@@ -244,11 +268,11 @@ class AnalyticsService
         $avgTime = $avgTimeQuery->selectRaw('AVG(DATEDIFF(finalized_at, created_at)) as avg_days')->value('avg_days');
 
         return [
-            'total_apps' => $stats->total ?? 0,
+            'total_apps' => $totalApps,
             'hired' => $stats->joined ?? 0,
             'active_designations' => $activeDesignationsCount ?? 0,
             'avg_time_to_hire' => round($avgTime ?? 0, 1),
-            'hire_rate' => $stats->total > 0 ? round(($stats->joined / $stats->total) * 100, 1) : 0
+            'hire_rate' => $totalApps > 0 ? round(($stats->joined / $totalApps) * 100, 1) : 0
         ];
     }
 
@@ -308,12 +332,12 @@ class AnalyticsService
             $apps[] = $appQuery->count();
 
             // Hires in this month (finalized)
-            $hireQuery = Candidate::query()->where('stage', 'joined')->whereBetween('finalized_at', [$startOfMonth, $endOfMonth]);
+            $hireQuery = Candidate::query()->whereIn('stage', ['joined', 'offer_accepted'])->whereBetween('finalized_at', [$startOfMonth, $endOfMonth]);
             if ($departmentId) $hireQuery->where('department_id', $departmentId);
             $hired[] = $hireQuery->count();
 
             // Avg Time to Hire for those hired in this month
-            $velQuery = Candidate::query()->where('stage', 'joined')->whereBetween('finalized_at', [$startOfMonth, $endOfMonth]);
+            $velQuery = Candidate::query()->whereIn('stage', ['joined', 'offer_accepted'])->whereBetween('finalized_at', [$startOfMonth, $endOfMonth]);
             if ($departmentId) $velQuery->where('department_id', $departmentId);
             $avgVel = $velQuery->selectRaw('AVG(DATEDIFF(finalized_at, created_at)) as avg_days')->value('avg_days');
             $velocity[] = round($avgVel ?? 0, 1);
