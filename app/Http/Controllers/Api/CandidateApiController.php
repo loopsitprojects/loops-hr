@@ -55,8 +55,7 @@ class CandidateApiController extends Controller
                 'expected_salary' => $request->expected_salary,
                 'designation' => $designation->name, // Legacy string column support
                 'cv_path' => $path,
-                'stage' => 'test', 
-                'status' => 'pending', 
+                'stage' => 'default', 
                 'status' => 'pending', 
                 'hod_comment' => null,
             ]);

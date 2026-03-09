@@ -32,7 +32,6 @@
                 <th>Designation</th>
                 <th style="text-align:center">Total Applicants</th>
                 <th style="text-align:center">Shortlisted</th>
-                <th style="text-align:center">Tasks</th>
                 <th style="text-align:center">Test Sent</th>
                 <th style="text-align:center">Test Rec</th>
                 <th style="text-align:center">1st Int</th>
@@ -59,7 +58,6 @@
                     <td class="designation" style="padding-left: 15px;">{{ $row->name }}</td>
                     <td class="count">{{ $row->total_applications }}</td>
                     <td class="count">{{ $row->stages['shortlisted'] ?? 0 }}</td>
-                    <td class="count">{{ $row->total_tasks }}</td>
                     <td class="count">{{ $row->stages['test_sent'] ?? 0 }}</td>
                     <td class="count">{{ $row->stages['test_received'] ?? 0 }}</td>
                     <td class="count">{{ $row->stages['1st_interview'] ?? 0 }}</td>

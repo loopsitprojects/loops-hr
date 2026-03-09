@@ -27,7 +27,7 @@ class CandidateSeeder extends Seeder
         Candidate::truncate();
 
         // Note: DB Enum uses 'joined', UI displays 'Hired'
-        $validStages = ['test', '1st_interview', '2nd_interview', 'offer_sent', 'offer_accepted', 'joined'];
+        $validStages = ['default', 'shortlisted', 'test_sent', 'test_received', '1st_interview', '2nd_interview', 'offer_sent', 'offer_accepted', 'joined', 'rejected'];
         $count = 0;
 
         foreach ($departments as $department) {

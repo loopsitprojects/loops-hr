@@ -45,7 +45,7 @@ class AnalyticsService
     /**
      * Active Designations: Count of open/active positions per designation.
      * "candidates currently in the 'Interviewing' or 'AURA Task' stages"
-     * Mapping: 'test' (AURA Task), '1st_interview', '2nd_interview'.
+     * Mapping: 'test_sent' (AURA Task), '1st_interview', '2nd_interview'.
      */
     public function getActiveDesignations(): Collection
     {
@@ -55,7 +55,7 @@ class AnalyticsService
                 DB::raw('count(*) as active_count')
             )
             ->join('designations', 'candidates.designation_id', '=', 'designations.id')
-            ->whereIn('candidates.stage', ['shortlisted', 'test', 'test_sent', 'test_received', '1st_interview', '2nd_interview'])
+            ->whereIn('candidates.stage', ['shortlisted', 'test_sent', 'test_received', '1st_interview', '2nd_interview'])
             ->groupBy('designations.name')
             ->orderByDesc('active_count')
             ->get();
@@ -144,14 +144,12 @@ class AnalyticsService
                 if ($startDate) $join->where('candidates.created_at', '>=', $startDate);
                 if ($endDate) $join->where('candidates.created_at', '<=', $endDate);
             })
-            ->leftJoin('candidate_assessments', 'candidates.id', '=', 'candidate_assessments.candidate_id')
             ->join('departments', 'designations.department_id', '=', 'departments.id')
             ->select(
                 'designations.id',
                 'designations.name',
                 'departments.name as department_name',
-                DB::raw('COUNT(DISTINCT candidates.id) as total_applications'),
-                DB::raw('COUNT(DISTINCT candidate_assessments.id) as total_tasks')
+                DB::raw('COUNT(DISTINCT candidates.id) as total_applications')
             );
 
         if ($filter === 'active') {
@@ -292,8 +290,8 @@ class AnalyticsService
 
         // Sequence: Applied (Total) -> Shortlisted -> Test -> Interviews -> Offer -> Joined
         $applied = array_sum($counts);
-        $shortlisted = ($counts['shortlisted'] ?? 0) + ($counts['test'] ?? 0) + ($counts['test_sent'] ?? 0) + ($counts['test_received'] ?? 0) + ($counts['1st_interview'] ?? 0) + ($counts['2nd_interview'] ?? 0) + ($counts['offer_sent'] ?? 0) + ($counts['offer_accepted'] ?? 0) + ($counts['joined'] ?? 0);
-        $test = ($counts['test'] ?? 0) + ($counts['test_sent'] ?? 0) + ($counts['test_received'] ?? 0) + ($counts['1st_interview'] ?? 0) + ($counts['2nd_interview'] ?? 0) + ($counts['offer_sent'] ?? 0) + ($counts['offer_accepted'] ?? 0) + ($counts['joined'] ?? 0);
+        $shortlisted = ($counts['shortlisted'] ?? 0) + ($counts['test_sent'] ?? 0) + ($counts['test_received'] ?? 0) + ($counts['1st_interview'] ?? 0) + ($counts['2nd_interview'] ?? 0) + ($counts['offer_sent'] ?? 0) + ($counts['offer_accepted'] ?? 0) + ($counts['joined'] ?? 0);
+        $test = ($counts['test_sent'] ?? 0) + ($counts['test_received'] ?? 0) + ($counts['1st_interview'] ?? 0) + ($counts['2nd_interview'] ?? 0) + ($counts['offer_sent'] ?? 0) + ($counts['offer_accepted'] ?? 0) + ($counts['joined'] ?? 0);
         $interview = ($counts['1st_interview'] ?? 0) + ($counts['2nd_interview'] ?? 0) + ($counts['offer_sent'] ?? 0) + ($counts['offer_accepted'] ?? 0) + ($counts['joined'] ?? 0);
         $offer = ($counts['offer_sent'] ?? 0) + ($counts['offer_accepted'] ?? 0) + ($counts['joined'] ?? 0);
         $joined = $counts['joined'] ?? 0;

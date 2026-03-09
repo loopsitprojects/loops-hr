@@ -123,7 +123,7 @@ class AnalyticsController extends Controller
                 // BOM for Excel
                 fputs($file, "\xEF\xBB\xBF"); 
                 fputcsv($file, [
-                    'Designation', 'Total Applicants', 'Shortlisted', 'Tasks', 'Test Sent', 'Test Rec', '1st Int', '2nd Int', 'Offer', 'Accepted', 'Joined', 'Rej', 'Avg Speed', 'Avg Salary'
+                    'Designation', 'Total Applicants', 'Shortlisted', 'Test Sent', 'Test Rec', '1st Int', '2nd Int', 'Offer', 'Accepted', 'Joined', 'Rej', 'Avg Speed', 'Avg Salary'
                 ]);
 
                 foreach ($data as $row) {
@@ -131,7 +131,6 @@ class AnalyticsController extends Controller
                         $row->name,
                         $row->total_applications,
                         $row->stages['shortlisted'] ?? 0,
-                        $row->total_tasks,
                         $row->stages['test_sent'] ?? 0,
                         $row->stages['test_received'] ?? 0,
                         $row->stages['1st_interview'] ?? 0,

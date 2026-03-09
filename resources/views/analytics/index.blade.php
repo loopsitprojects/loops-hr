@@ -234,7 +234,6 @@
                             <th class="px-3 py-4 text-left">Designation</th>
                             <th class="px-2 py-2 text-center text-[10px] font-black uppercase tracking-tighter text-slate-400">Total Applicants</th>
                             <th class="px-2 py-2 text-center text-[10px] font-black uppercase tracking-tighter text-slate-400">Shortlisted</th>
-                            <th class="px-2 py-2 text-center text-[10px] font-black uppercase tracking-tighter text-slate-400">Tasks</th>
                             <th class="px-2 py-2 text-center text-[10px] font-black uppercase tracking-tighter text-slate-400">Test Sent</th>
                             <th class="px-2 py-2 text-center text-[10px] font-black uppercase tracking-tighter text-slate-400">Test Rec</th>
                             <th class="px-2 py-2 text-center text-[10px] font-black uppercase tracking-tighter text-slate-400">1st Int</th>
@@ -269,11 +268,6 @@
                                     </td>
                                     <td class="px-2 py-5 bg-slate-50/50 dark:bg-slate-800/30 border-y border-slate-100 dark:border-slate-800 text-center">
                                         <span class="text-xs font-black text-brand-teal">{{ $row->stages['shortlisted'] ?? 0 }}</span>
-                                    </td>
-                                    <td class="px-2 py-5 bg-slate-50/50 dark:bg-slate-800/30 border-y border-slate-100 dark:border-slate-800 text-center">
-                                        <span class="text-xs font-black text-slate-700 dark:text-slate-300">
-                                            {{ $row->total_tasks }}
-                                        </span>
                                     </td>
                                     <td class="px-2 py-5 bg-slate-50/50 dark:bg-slate-800/30 border-y border-slate-100 dark:border-slate-800 text-center">
                                         <span class="text-xs font-black text-indigo-500">{{ $row->stages['test_sent'] ?? 0 }}</span>
