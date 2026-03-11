@@ -161,7 +161,7 @@ class AnalyticsController extends Controller
                 'year' => $year,
                 'reportType' => $reportType,
                 'departmentName' => $departmentName
-            ]);
+            ])->setPaper('a4', 'landscape');
 
             $filename = $reportType === 'annual' 
                 ? "hr_annual_analytics_report_{$year}.pdf" 
