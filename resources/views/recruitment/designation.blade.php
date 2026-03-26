@@ -194,13 +194,13 @@
             <div class="mb-8 overflow-x-auto no-scrollbar pb-2">
                 <div class="flex items-center gap-2 min-w-max">
                     <a href="{{ request()->fullUrlWithQuery(['stage' => 'all', 'page' => null]) }}" 
-                       class="w-32 h-11 flex items-center justify-center px-2 rounded-[1.25rem] text-[10px] text-center leading-3 font-black uppercase tracking-[0.1em] transition-all duration-300 {{ $currentStage == 'all' ? 'shadow-lg shadow-teal-500/20 scale-105' : 'bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50' }}"
+                       class="h-8 px-4 flex items-center justify-center rounded-full text-[9px] whitespace-nowrap text-center leading-3 font-black uppercase tracking-[0.1em] transition-all duration-300 {{ $currentStage == 'all' ? 'shadow-lg shadow-teal-500/20 scale-105' : 'bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50' }}"
                        {!! $currentStage == 'all' ? 'style="background-color: #0d9488 !important; color: white !important;"' : '' !!}>
                         All Candidates
                     </a>
                     @foreach($stages as $key => $label)
                         <a href="{{ request()->fullUrlWithQuery(['stage' => $key, 'page' => null]) }}" 
-                           class="w-32 h-11 flex items-center justify-center px-2 rounded-[1.25rem] text-[10px] text-center leading-3 font-black uppercase tracking-[0.1em] transition-all duration-300 {{ $currentStage == $key ? 'shadow-lg shadow-teal-500/20 scale-105' : 'bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50' }}"
+                           class="h-8 px-4 flex items-center justify-center rounded-full text-[9px] whitespace-nowrap text-center leading-3 font-black uppercase tracking-[0.1em] transition-all duration-300 {{ $currentStage == $key ? 'shadow-lg shadow-teal-500/20 scale-105' : 'bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50' }}"
                            {!! $currentStage == $key ? 'style="background-color: #0d9488 !important; color: white !important;"' : '' !!}>
                             {{ $label }}
                         </a>
