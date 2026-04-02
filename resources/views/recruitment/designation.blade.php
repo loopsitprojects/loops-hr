@@ -376,7 +376,6 @@
                                     @if(auth()->user()->isAdmin() || auth()->user()->isHR())
                                         {{-- Test Column --}}
                                         <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
-                                            @if(!$showArchived)
                                             <button onclick="openAssessmentModal({{ $candidate->id }}, '{{ $candidate->name }}')" 
                                                     class="inline-flex items-center justify-center {{ $candidate->assessments->count() > 0 ? 'text-emerald-500' : 'text-slate-400 dark:text-slate-500' }} hover:text-brand-teal transition-colors group" 
                                                     title="{{ $candidate->assessments->count() > 0 ? 'Assessment Sent (Click to send again)' : 'Send Assessment Task' }}">
@@ -384,11 +383,9 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                                                 </svg>
                                             </button>
-                                            @endif
                                         </td>
                                         {{-- Rejection Column --}}
                                         <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
-                                            @if(!$showArchived)
                                             <button onclick="sendRejection({{ $candidate->id }}, '{{ $candidate->name }}')" 
                                                     class="inline-flex items-center justify-center {{ $candidate->status == 'Rejected' ? 'text-red-500' : 'text-slate-400 dark:text-slate-500' }} hover:text-red-600 transition-colors group" 
                                                     title="{{ $candidate->status == 'Rejected' ? 'Already Rejected' : 'Send Rejection Email' }}">
@@ -396,13 +393,11 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                                 </svg>
                                             </button>
-                                            @endif
                                         </td>
                                     @endif
 
                                     {{-- Link Column (Submissions) --}}
                                     <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
-                                        @if(!$showArchived)
                                             @php 
                                                 $submission = $candidate->assessments->whereIn('status', ['Submitted', 'Completed'])->first();
                                             @endphp
@@ -428,13 +423,11 @@
                                                     @endif
                                                 @endif
                                             </div>
-                                        @endif
                                     </td>
 
                                     @if(auth()->user()->isAdmin() || auth()->user()->isHR())
                                         {{-- Sch Column --}}
                                         <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
-                                            @if(!$showArchived)
                                             <button onclick="openScheduleModal({{ $candidate->id }}, '{{ $candidate->name }}')" 
                                                     class="{{ $candidate->interviews->count() > 0 ? 'text-emerald-500' : 'text-slate-400 dark:text-slate-500' }} hover:text-brand-teal transition-colors" 
                                                     title="{{ $candidate->interviews->count() > 0 ? 'Interview Scheduled (Click to schedule again)' : 'Schedule Interview' }}">
@@ -442,7 +435,6 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                                 </svg>
                                             </button>
-                                            @endif
                                         </td>
                                     @endif
 
