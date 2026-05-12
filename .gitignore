@@ -1,6 +1,7 @@
 
 /vendor
 /node_modules
+/public/CV_upload/
 /public/hot
 /public/storage
 /storage/*.key
