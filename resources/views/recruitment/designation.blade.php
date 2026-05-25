@@ -210,44 +210,39 @@
 
             <div class="bg-white dark:bg-slate-900 transition-colors duration-300 rounded-3xl shadow-sm overflow-hidden border border-slate-100 dark:border-slate-800">
                 <div class="p-6 overflow-x-auto">
-                    <table class="min-w-full table-fixed border-separate border-spacing-y-6">
+                    <table class="min-w-full table-fixed border-separate border-spacing-y-2">
                         <thead>
-                            <tr class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-300 border-b border-slate-100 dark:border-slate-800">
-                                <th class="pb-4 pl-4 w-[4%]">
+                            <tr class="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-300">
+                                <th class="pb-3 pl-4 w-[3%]">
                                     <input type="checkbox" id="select-all" class="rounded border-slate-300 text-brand-navy focus:ring-brand-navy dark:border-slate-700 dark:bg-slate-900 dark:checked:bg-brand-navy">
                                 </th>
-                                <th class="w-[2%]"><!-- Spacer --></th>
-                                <th class="pb-4 text-left w-[10%]">Name</th>
-                                <th class="pb-4 text-left w-[10%]">Email</th>
-                                <th class="pb-4 text-left w-[7%]">Phone</th>
-                                <th class="pb-4 text-left w-[7%]">Expected Salary</th>
-                                <th class="pb-4 text-left w-[8%]">Portfolio</th>
-                                <th class="pb-4 text-center w-[7%]">Status</th>
-                                <th class="pb-4 text-center w-[6%]">Pipeline</th>
-                                <th class="pb-4 text-center w-[4%]">Rating</th>
-                                <th class="pb-4 text-center w-[5%]">Feedback</th>
+                                <th class="pb-3 text-left w-[11%]">Name</th>
+                                <th class="pb-3 text-left w-[9%]">Email</th>
+                                <th class="pb-3 text-left w-[8%]">Phone</th>
+                                <th class="pb-3 text-left w-[6%]">Salary</th>
+                                <th class="pb-3 text-center w-[10%]">Status</th>
+                                <th class="pb-3 text-center w-[7%]">Pipeline</th>
+                                <th class="pb-3 text-center w-[5%]">Rating</th>
+                                <th class="pb-3 text-center w-[4%]">Fbk</th>
                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
-                                    <th class="pb-4 text-center w-[5%]">Test</th>
-                                    <th class="pb-4 text-center w-[5%]">Rej</th>
+                                    <th class="pb-3 text-center w-[4%]">Test</th>
+                                    <th class="pb-3 text-center w-[4%]">Rej</th>
                                 @endif
-                                <th class="pb-4 text-center w-[5%]">Link</th>
+                                <th class="pb-3 text-center w-[4%]">Link</th>
                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
-                                    <th class="pb-4 text-center w-[5%]">Sch</th>
+                                    <th class="pb-3 text-center w-[4%]">Sch</th>
                                 @endif
-                                <th class="pb-4 text-center w-[5%]">CV</th>
-                                @if(auth()->user()->isAdmin() || auth()->user()->isHR())
-                                    <th class="pb-4 text-center w-[5%]">Arc</th>
-                                @endif
+                                <th class="pb-3 text-center w-[4%]">CV</th>
+                                <th class="pb-3 text-center w-[4%]">PTF</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($candidates as $candidate)
                                 <tr class="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                                    <td class="py-6 pl-4 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+                                    <td class="py-3 pl-4 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
                                         <input type="checkbox" name="selected_candidates[]" value="{{ $candidate->id }}" class="candidate-checkbox rounded border-slate-300 text-brand-navy focus:ring-brand-navy dark:border-slate-700 dark:bg-slate-900 dark:checked:bg-brand-navy">
                                     </td>
-                                    <td class="border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900"><!-- Spacer --></td>
-                                    <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+                                    <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
                                          <div class="text-sm font-bold text-brand-navy dark:text-white cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text"
                                             @if(auth()->user()->isAdmin() || auth()->user()->isHR()) contenteditable="true" @endif
                                             data-candidate-id="{{ $candidate->id }}"
@@ -257,17 +252,18 @@
                                             {{ $candidate->name }}
                                         </div>
                                     </td>
-                                    <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-                                        <div class="text-xs font-medium text-slate-500 dark:text-slate-400 cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text"
+                                    <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+                                        <div class="text-xs font-medium text-slate-500 dark:text-slate-400 cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text max-w-[80px] truncate"
                                             @if(auth()->user()->isAdmin() || auth()->user()->isHR()) contenteditable="true" @endif
                                             data-candidate-id="{{ $candidate->id }}"
                                             data-field="email"
                                             spellcheck="false"
-                                            onblur="updateField(this)">
+                                            onblur="updateField(this)"
+                                            title="{{ $candidate->email }}">
                                             {{ $candidate->email }}
                                         </div>
                                     </td>
-                                    <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+                                    <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
                                         <div class="text-xs font-medium text-slate-400 dark:text-slate-500 cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text"
                                             @if(auth()->user()->isAdmin() || auth()->user()->isHR()) contenteditable="true" @endif
                                             data-candidate-id="{{ $candidate->id }}"
@@ -277,7 +273,7 @@
                                             {{ $candidate->phone ?? '—' }}
                                         </div>
                                     </td>
-                                    <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+                                    <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
                                         <div class="text-xs font-bold text-slate-700 dark:text-white cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text"
                                             @if(auth()->user()->isAdmin() || auth()->user()->isHR()) contenteditable="true" @endif
                                             data-candidate-id="{{ $candidate->id }}"
@@ -288,29 +284,11 @@
                                             {{ $candidate->expected_salary ? (is_numeric(str_replace(',', '', $candidate->expected_salary)) ? number_format(str_replace(',', '', $candidate->expected_salary)) : $candidate->expected_salary) : '—' }}
                                         </div>
                                     </td>
-                                    <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-                                        <div class="flex items-center gap-1.5 justify-start">
-                                            <div class="text-xs font-medium text-slate-400 dark:text-slate-500 cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text min-w-[80px]"
-                                                @if(auth()->user()->isAdmin() || auth()->user()->isHR()) contenteditable="true" @endif
-                                                data-candidate-id="{{ $candidate->id }}"
-                                                data-field="portfolio"
-                                                data-placeholder="Portfolio"
-                                                spellcheck="false"
-                                                onblur="updateField(this)">{{ $candidate->portfolio }}</div>
-                                            @if($candidate->portfolio)
-                                                <a href="{{ $candidate->portfolio }}" target="_blank" class="text-slate-400 hover:text-brand-teal transition-colors flex-shrink-0" title="Open Portfolio">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                                                    </svg>
-                                                </a>
-                                            @endif
-                                        </div>
-                                    </td>
-                                    <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+                                    <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
                                         <div class="relative flex items-center">
                                             <select data-candidate-id="{{ $candidate->id }}"
                                                 data-field="stage"
-                                                class="editable-field block w-full bg-transparent text-[10px] font-bold uppercase cursor-pointer focus:outline-none transition-colors pr-6 text-slate-700 dark:text-white disabled:cursor-not-allowed disabled:opacity-70"
+                                                class="editable-field block w-full bg-transparent text-[10px] font-bold uppercase cursor-pointer focus:outline-none transition-colors pr-5 text-slate-700 dark:text-white disabled:cursor-not-allowed disabled:opacity-70"
                                                 style="appearance: none !important; -webkit-appearance: none !important; background-color: transparent !important; border: none !important; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right center; background-size: 0.5rem auto;"
                                                 {{ (auth()->user()->isAdmin() || auth()->user()->isHR() || auth()->user()->isHOD() || auth()->user()->isManagers() || auth()->user()->isManager()) ? '' : 'disabled' }}>
                                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
@@ -337,27 +315,26 @@
                                             </select>
                                         </div>
                                     </td>
-                                    <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
-                                        <div class="flex flex-col items-center" id="pipeline-cell-{{ $candidate->id }}">
+                                    <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
+                                        <div class="flex flex-col items-center leading-tight" id="pipeline-cell-{{ $candidate->id }}">
                                             @if($candidate->finalized_at)
                                                 @if($candidate->stage == 'joined' || $candidate->stage == 'offer_accepted')
-                                                    <span class="text-[9px] uppercase tracking-wider font-bold text-brand-teal mb-0.5">Hired in</span>
-                                                    <span class="text-xs font-bold text-slate-700 dark:text-white">{{ $candidate->created_at->diffForHumans($candidate->finalized_at, true) }}</span>
+                                                    <span class="text-[8px] uppercase tracking-wide font-bold text-brand-teal">Hired</span>
+                                                    <span class="text-[10px] font-bold text-slate-700 dark:text-white">{{ $candidate->created_at->diffForHumans($candidate->finalized_at, true) }}</span>
                                                 @elseif($candidate->stage == 'rejected')
-                                                    <span class="text-[9px] uppercase tracking-wider font-bold text-red-500 mb-0.5">Rejected after</span>
-                                                    <span class="text-xs font-bold text-red-700 dark:text-red-400">{{ $candidate->created_at->diffForHumans($candidate->finalized_at, true) }}</span>
+                                                    <span class="text-[8px] uppercase tracking-wide font-bold text-red-500">Rejected</span>
+                                                    <span class="text-[10px] font-bold text-red-700 dark:text-red-400">{{ $candidate->created_at->diffForHumans($candidate->finalized_at, true) }}</span>
                                                 @else
-                                                    <!-- Fallback if status changed but finalized_at remains (shouldn't happen with current logic) -->
-                                                    <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400 mb-0.5">Closed in</span>
-                                                    <span class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ $candidate->created_at->diffForHumans($candidate->finalized_at, true) }}</span>
+                                                    <span class="text-[8px] uppercase tracking-wide font-bold text-slate-400">Closed</span>
+                                                    <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">{{ $candidate->created_at->diffForHumans($candidate->finalized_at, true) }}</span>
                                                 @endif
                                             @else
-                                                <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400 mb-0.5">Active</span>
-                                                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ $candidate->created_at->diffForHumans(null, true) }}</span>
+                                                <span class="text-[8px] uppercase tracking-wide font-bold text-slate-400">Active</span>
+                                                <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">{{ $candidate->created_at->diffForHumans(null, true) }}</span>
                                             @endif
                                         </div>
                                     </td>
-                                    <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
+                                    <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
                                         <div class="relative flex items-center justify-center">
                                             <select data-candidate-id="{{ $candidate->id }}"
                                                 data-field="rating"
@@ -372,29 +349,20 @@
                                             <span class="text-[8px] text-slate-400 font-bold ml-1">/5</span>
                                         </div>
                                     </td>
-                                    <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-                                        <div class="flex items-center justify-center">
-                                            <div class="feedback-trigger group cursor-pointer inline-flex items-center gap-2 p-1 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                                                data-candidate-id="{{ $candidate->id }}"
-                                                style="max-width: 80px;"
-                                                onclick="openFeedbackModal({{ $candidate->id }}, '{{ str_replace(["\r", "\n", "'"], ['', '\n', "\\'"], $candidate->hod_comment) }}')">
-                                                <div class="w-7 h-7 rounded-full bg-brand-teal/5 flex items-center justify-center flex-shrink-0 group-hover:bg-brand-teal/10 transition-colors">
-                                                    <svg class="w-3.5 h-3.5 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
-                                                    </svg>
-                                                </div>
-                                                <div class="flex flex-col min-w-0 flex-1">
-                                                    <p class="feedback-text text-xs text-slate-600 dark:text-slate-400 truncate {{ !$candidate->hod_comment ? 'italic opacity-60' : '' }}">
-                                                        {{ $candidate->hod_comment ?? 'Comment' }}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
+                                        <button class="feedback-trigger inline-flex items-center justify-center w-7 h-7 rounded-full transition-all {{ $candidate->hod_comment ? 'bg-brand-teal/20 text-brand-teal ring-1 ring-brand-teal/30 hover:bg-brand-teal/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 hover:text-brand-teal hover:bg-brand-teal/10' }}"
+                                            data-candidate-id="{{ $candidate->id }}"
+                                            title="{{ $candidate->hod_comment ? e($candidate->hod_comment) : 'Add comment' }}"
+                                            onclick="openFeedbackModal({{ $candidate->id }}, '{{ str_replace(["\r", "\n", "'"], ['', '\n', "\\'"], $candidate->hod_comment) }}')">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                                            </svg>
+                                        </button>
                                     </td>
 
                                     @if(auth()->user()->isAdmin() || auth()->user()->isHR())
                                         {{-- Test Column --}}
-                                        <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
+                                        <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
                                             <button onclick="openAssessmentModal({{ $candidate->id }}, '{{ $candidate->name }}')" 
                                                     class="inline-flex items-center justify-center {{ $candidate->assessments->count() > 0 ? 'text-emerald-500' : 'text-slate-400 dark:text-slate-500' }} hover:text-brand-teal transition-colors group" 
                                                     title="{{ $candidate->assessments->count() > 0 ? 'Assessment Sent (Click to send again)' : 'Send Assessment Task' }}">
@@ -404,7 +372,7 @@
                                             </button>
                                         </td>
                                         {{-- Rejection Column --}}
-                                        <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
+                                        <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
                                             <button onclick="sendRejection({{ $candidate->id }}, '{{ $candidate->name }}')" 
                                                     class="inline-flex items-center justify-center {{ $candidate->status == 'Rejected' ? 'text-red-500' : 'text-slate-400 dark:text-slate-500' }} hover:text-red-600 transition-colors group" 
                                                     title="{{ $candidate->status == 'Rejected' ? 'Already Rejected' : 'Send Rejection Email' }}">
@@ -416,7 +384,7 @@
                                     @endif
 
                                     {{-- Link Column (Submissions) --}}
-                                    <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
+                                    <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
                                             @php 
                                                 $submission = $candidate->assessments->whereIn('status', ['Submitted', 'Completed'])->first();
                                             @endphp
@@ -446,7 +414,7 @@
 
                                     @if(auth()->user()->isAdmin() || auth()->user()->isHR())
                                         {{-- Sch Column --}}
-                                        <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
+                                        <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
                                             <button onclick="openScheduleModal({{ $candidate->id }}, '{{ $candidate->name }}')" 
                                                     class="{{ $candidate->interviews->count() > 0 ? 'text-emerald-500' : 'text-slate-400 dark:text-slate-500' }} hover:text-brand-teal transition-colors" 
                                                     title="{{ $candidate->interviews->count() > 0 ? 'Interview Scheduled (Click to schedule again)' : 'Schedule Interview' }}">
@@ -458,7 +426,7 @@
                                     @endif
 
                                     {{-- CV Column (Visible to all) --}}
-                                    <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
+                                    <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
                                         <a href="{{ rtrim(config('filesystems.disks.ftp_cvs.url'), '/') }}/{{ ltrim($candidate->cv_path, '/') }}" target="_blank" class="inline-flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-brand-teal transition-colors" title="View CV">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -466,34 +434,23 @@
                                         </a>
                                     </td>
 
-                                    {{-- Arc Column --}}
-                                    @if(auth()->user()->isAdmin() || auth()->user()->isHR())
-                                        <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
-                                            @if(!$showArchived)
-                                            <form action="{{ route('recruitment.archiveCandidate', $candidate) }}" method="POST" onsubmit="return confirm('Archive this candidate?');" class="inline">
-                                                @csrf
-                                                <button type="submit" class="text-slate-400 hover:text-amber-500 transition-colors" title="Archive Candidate">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
-                                                    </svg>
-                                                </button>
-                                            </form>
-                                            @else
-                                            <form action="{{ route('recruitment.unarchiveCandidate', $candidate) }}" method="POST" onsubmit="return confirm('Restore this candidate?');" class="inline">
-                                                @csrf
-                                                <button type="submit" class="text-slate-400 hover:text-emerald-500 transition-colors" title="Restore Candidate">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                                                    </svg>
-                                                </button>
-                                            </form>
-                                            @endif
-                                        </td>
-                                    @endif
+                                    {{-- PTF Column --}}
+                                    <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
+                                        <button class="portfolio-trigger inline-flex items-center justify-center w-7 h-7 rounded-full transition-all {{ $candidate->portfolio ? 'bg-brand-teal/20 text-brand-teal ring-1 ring-brand-teal/30 hover:bg-brand-teal/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 hover:text-brand-teal hover:bg-brand-teal/10' }}"
+                                            data-candidate-id="{{ $candidate->id }}"
+                                            data-portfolio="{{ $candidate->portfolio }}"
+                                            title="{{ $candidate->portfolio ?: 'Add portfolio link' }}"
+                                            onclick="openPortfolioModal({{ $candidate->id }}, '{{ addslashes($candidate->portfolio) }}')">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                                            </svg>
+                                        </button>
+                                    </td>
+
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ (auth()->user()->isAdmin() || auth()->user()->isHR()) ? 17 : 13 }}" class="py-12 text-center text-xs font-bold text-slate-400 uppercase tracking-widest italic">
+                                    <td colspan="{{ (auth()->user()->isAdmin() || auth()->user()->isHR()) ? 15 : 11 }}" class="py-12 text-center text-xs font-bold text-slate-400 uppercase tracking-widest italic">
                                         No candidates found for this designation.
                                     </td>
                                 </tr>
@@ -520,6 +477,13 @@
         :is(.dark) select option {
             background-color: #0f172a; /* slate-900 */
             color: #f1f5f9; /* slate-100 */
+        }
+
+        select.editable-field {
+            color: #334155 !important; /* slate-700 */
+        }
+        :is(.dark) select.editable-field {
+            color: #f1f5f9 !important; /* slate-100 */
         }
 
         .editable-text:empty:before {
@@ -931,6 +895,22 @@
         });
     </script>
     @endif
+
+    <script>
+        // Fix select text color in dark mode (Tailwind dark: classes unreliable on native selects)
+        function applySelectColors() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const color = isDark ? '#f1f5f9' : '#334155';
+            document.querySelectorAll('select.editable-field').forEach(function(sel) {
+                sel.style.color = color;
+            });
+        }
+        document.addEventListener('DOMContentLoaded', applySelectColors);
+        // Keep in sync if user toggles theme
+        new MutationObserver(applySelectColors).observe(
+            document.documentElement, { attributes: true, attributeFilter: ['class'] }
+        );
+    </script>
 
     <script>
         // Upload Modal Functions
@@ -1592,6 +1572,42 @@
         </div>
     </div>
 
+    <!-- Portfolio Modal -->
+    <div id="portfolioModal" class="hidden fixed inset-0 z-[9999999] flex items-center justify-center px-4" style="z-index: 9999999 !important;" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" aria-hidden="true" onclick="closePortfolioModal()"></div>
+        <div class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-xs border border-slate-100 dark:border-slate-800 z-10">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                <h3 class="text-[11px] font-black text-brand-navy dark:text-white uppercase tracking-widest">Portfolio Link</h3>
+                <button onclick="closePortfolioModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-5 space-y-3">
+                <input type="hidden" id="portfolio-candidate-id">
+                <div id="portfolio-open-row" class="hidden">
+                    <a id="portfolio-open-link" href="#" target="_blank"
+                        class="flex items-center gap-2 px-4 py-2.5 bg-brand-teal/10 text-brand-teal rounded-xl text-[11px] font-bold uppercase tracking-wider hover:bg-brand-teal/20 transition-all w-full justify-center">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                        Open Portfolio
+                    </a>
+                </div>
+                @if(auth()->user()->isAdmin() || auth()->user()->isHR())
+                <input type="url" id="portfolio-url-input"
+                    class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal/40 transition-all text-slate-700 dark:text-white placeholder:text-slate-400"
+                    placeholder="https://...">
+                @endif
+            </div>
+            <div class="flex justify-end gap-2 px-5 py-3 border-t border-slate-100 dark:border-slate-800">
+                <button onclick="closePortfolioModal()" class="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Cancel</button>
+                @if(auth()->user()->isAdmin() || auth()->user()->isHR())
+                <button onclick="savePortfolio()" class="px-5 py-2 bg-brand-teal text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all active:scale-95">Save</button>
+                @endif
+            </div>
+        </div>
+    </div>
+
     <!-- Assessment Modal -->
     <div id="assessmentModal" class="hidden fixed inset-0 z-[9999999] overflow-y-auto" style="z-index: 9999999 !important;" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -1966,6 +1982,83 @@ We appreciate the opportunity to review your profile and wish you the very best 
             } catch (error) {
                 console.error('Save feedback error:', error);
                 alert('An error occurred while saving feedback.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+
+        function openPortfolioModal(candidateId, url) {
+            document.getElementById('portfolio-candidate-id').value = candidateId;
+            const input = document.getElementById('portfolio-url-input');
+            if (input) input.value = url || '';
+            const openRow = document.getElementById('portfolio-open-row');
+            const openLink = document.getElementById('portfolio-open-link');
+            if (url) {
+                openRow.classList.remove('hidden');
+                openLink.href = url;
+            } else {
+                openRow.classList.add('hidden');
+            }
+            document.getElementById('portfolioModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            if (input) setTimeout(() => input.focus(), 50);
+        }
+
+        function closePortfolioModal() {
+            document.getElementById('portfolioModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        async function savePortfolio() {
+            const candidateId = document.getElementById('portfolio-candidate-id').value;
+            const input = document.getElementById('portfolio-url-input');
+            const url = input ? input.value.trim() : '';
+            const btn = document.querySelector('#portfolioModal button[onclick="savePortfolio()"]');
+
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            try {
+                const response = await fetch(`/recruitment/candidate/${candidateId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ field: 'portfolio', value: url })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    // Update icon appearance
+                    const trigger = document.querySelector(`.portfolio-trigger[data-candidate-id="${candidateId}"]`);
+                    if (trigger) {
+                        trigger.dataset.portfolio = url;
+                        trigger.title = url || 'Add portfolio link';
+                        trigger.setAttribute('onclick', `openPortfolioModal(${candidateId}, '${url.replace(/'/g, "\\'")}')`);
+                        if (url) {
+                            trigger.className = trigger.className
+                                .replace(/bg-slate-100[^\s]*/g, '')
+                                .replace(/dark:bg-slate-800[^\s]*/g, '')
+                                .replace(/text-slate-400[^\s]*/g, '')
+                                .replace(/dark:text-slate-600[^\s]*/g, '');
+                            trigger.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-400', 'dark:text-slate-600', 'hover:text-brand-teal', 'hover:bg-brand-teal/10');
+                            trigger.classList.add('bg-brand-teal/20', 'text-brand-teal', 'ring-1', 'ring-brand-teal/30', 'hover:bg-brand-teal/30');
+                        } else {
+                            trigger.classList.remove('bg-brand-teal/20', 'text-brand-teal', 'ring-1', 'ring-brand-teal/30', 'hover:bg-brand-teal/30');
+                            trigger.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-400', 'dark:text-slate-600', 'hover:text-brand-teal', 'hover:bg-brand-teal/10');
+                        }
+                    }
+                    closePortfolioModal();
+                } else {
+                    alert(data.error || 'Failed to save portfolio link');
+                }
+            } catch (error) {
+                console.error('Save portfolio error:', error);
+                alert('An error occurred while saving.');
             } finally {
                 btn.disabled = false;
                 btn.textContent = originalText;
