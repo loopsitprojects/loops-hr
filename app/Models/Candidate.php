@@ -29,7 +29,8 @@ class Candidate extends Model
         'is_archived',
         'finalized_at',
         'rating',
-        'expected_salary'
+        'expected_salary',
+        'portfolio'
     ];
 
     protected $casts = [

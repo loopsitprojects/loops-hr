@@ -59,6 +59,10 @@ class CandidateWebhookController extends Controller
 
             $message = $this->getFieldValue($fields, 'message');
 
+            $portfolio = $this->getFieldValue($fields, 'portfolio')
+                      ?? $this->getFieldValue($fields, 'portfolio_url')
+                      ?? $this->getFieldValue($fields, 'portfolio_link');
+
             // Validate required fields
             if (!$name || !$email) {
                 Log::error('Missing required fields', [
@@ -152,6 +156,7 @@ class CandidateWebhookController extends Controller
                 'hod_comment' => $message,
                 'stage' => 'default',
                 'status' => 'pending',
+                'portfolio' => $portfolio,
             ]);
 
             Log::info('Candidate created from WPForms', ['candidate_id' => $candidate->id]);

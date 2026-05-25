@@ -26,6 +26,7 @@ class CandidateApiController extends Controller
             'designation_id' => 'required|exists:designations,id',
             'expected_salary' => 'nullable|string|max:255',
             'cv' => 'required|file|mimes:pdf|max:10240', // 10MB max
+            'portfolio' => 'nullable|string|max:255',
         ]);
 
         try {
@@ -58,6 +59,7 @@ class CandidateApiController extends Controller
                 'stage' => 'default', 
                 'status' => 'pending', 
                 'hod_comment' => null,
+                'portfolio' => $request->portfolio,
             ]);
 
             // Send email notification ONLY to the central HR email address

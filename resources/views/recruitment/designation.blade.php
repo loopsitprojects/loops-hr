@@ -217,14 +217,15 @@
                                     <input type="checkbox" id="select-all" class="rounded border-slate-300 text-brand-navy focus:ring-brand-navy dark:border-slate-700 dark:bg-slate-900 dark:checked:bg-brand-navy">
                                 </th>
                                 <th class="w-[2%]"><!-- Spacer --></th>
-                                <th class="pb-4 text-left w-[12%]">Name</th>
-                                <th class="pb-4 text-left w-[12%]">Email</th>
-                                <th class="pb-4 text-left w-[8%]">Phone</th>
-                                <th class="pb-4 text-left w-[8%]">Expected Salary</th>
+                                <th class="pb-4 text-left w-[10%]">Name</th>
+                                <th class="pb-4 text-left w-[10%]">Email</th>
+                                <th class="pb-4 text-left w-[7%]">Phone</th>
+                                <th class="pb-4 text-left w-[7%]">Expected Salary</th>
+                                <th class="pb-4 text-left w-[8%]">Portfolio</th>
                                 <th class="pb-4 text-center w-[7%]">Status</th>
-                                <th class="pb-4 text-center w-[7%]">Pipeline</th>
+                                <th class="pb-4 text-center w-[6%]">Pipeline</th>
                                 <th class="pb-4 text-center w-[4%]">Rating</th>
-                                <th class="pb-4 text-center w-[6%]">Feedback</th>
+                                <th class="pb-4 text-center w-[5%]">Feedback</th>
                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
                                     <th class="pb-4 text-center w-[5%]">Test</th>
                                     <th class="pb-4 text-center w-[5%]">Rej</th>
@@ -285,6 +286,24 @@
                                             oninput="formatSalary(this)"
                                             onblur="updateField(this)">
                                             {{ $candidate->expected_salary ? (is_numeric(str_replace(',', '', $candidate->expected_salary)) ? number_format(str_replace(',', '', $candidate->expected_salary)) : $candidate->expected_salary) : '—' }}
+                                        </div>
+                                    </td>
+                                    <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+                                        <div class="flex items-center gap-1.5 justify-start">
+                                            <div class="text-xs font-medium text-slate-400 dark:text-slate-500 cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text min-w-[80px]"
+                                                @if(auth()->user()->isAdmin() || auth()->user()->isHR()) contenteditable="true" @endif
+                                                data-candidate-id="{{ $candidate->id }}"
+                                                data-field="portfolio"
+                                                data-placeholder="Portfolio"
+                                                spellcheck="false"
+                                                onblur="updateField(this)">{{ $candidate->portfolio }}</div>
+                                            @if($candidate->portfolio)
+                                                <a href="{{ $candidate->portfolio }}" target="_blank" class="text-slate-400 hover:text-brand-teal transition-colors flex-shrink-0" title="Open Portfolio">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                                    </svg>
+                                                </a>
+                                            @endif
                                         </div>
                                     </td>
                                     <td class="py-6 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
@@ -474,7 +493,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ (auth()->user()->isAdmin() || auth()->user()->isHR()) ? 15 : 12 }}" class="py-12 text-center text-xs font-bold text-slate-400 uppercase tracking-widest italic">
+                                    <td colspan="{{ (auth()->user()->isAdmin() || auth()->user()->isHR()) ? 17 : 13 }}" class="py-12 text-center text-xs font-bold text-slate-400 uppercase tracking-widest italic">
                                         No candidates found for this designation.
                                     </td>
                                 </tr>

@@ -451,7 +451,7 @@ class RecruitmentController extends Controller
         }
 
         $request->validate([
-            'field' => 'required|in:designation,stage,hod_comment,name,email,phone,rating,expected_salary',
+            'field' => 'required|in:designation,stage,hod_comment,name,email,phone,rating,expected_salary,portfolio',
             'value' => 'nullable|string|max:1000',
         ]);
 
@@ -1091,7 +1091,7 @@ class RecruitmentController extends Controller
                           "--------------------------\n" .
                           "Interviewer reference:\n" .
                           "Interviewers: {$interviewerNames}\n" .
-                          "Resume Link: " . $resumeLink;
+                          "Resume Link: " . $resumeLink . ($candidate->portfolio ? "\nPortfolio Link: " . $candidate->portfolio : "");
 
             $eventData = $googleService->createMeetEvent([
                 'summary' => $summary,
