@@ -44,9 +44,15 @@ class AnalyticsController extends Controller
         $reportType = $request->input('report_type', 'annual');
         $designationFilter = $request->input('designation_filter', 'active');
         
+        $startDateInput = $request->input('start_date', date('Y-m-01'));
+        $endDateInput = $request->input('end_date', date('Y-m-t'));
+        
         if ($reportType === 'annual') {
             $startDate = $year . '-01-01 00:00:00';
             $endDate = $year . '-12-31 23:59:59';
+        } elseif ($reportType === 'custom') {
+            $startDate = $startDateInput . ' 00:00:00';
+            $endDate = $endDateInput . ' 23:59:59';
         } else {
             $startDate = $month . '-01 00:00:00';
             $endDate = date('Y-m-t 23:59:59', strtotime($startDate));
@@ -66,6 +72,8 @@ class AnalyticsController extends Controller
             'month', 
             'year',
             'reportType',
+            'startDateInput',
+            'endDateInput',
             'overviewStats', 
             'designationFilter',
             'deptComparison'
@@ -96,10 +104,16 @@ class AnalyticsController extends Controller
         $reportType = $request->input('report_type', 'annual');
         $designationFilter = $request->input('designation_filter', 'active');
         $format = $request->input('format', 'pdf'); // Accept format from request, default to PDF
+        
+        $startDateInput = $request->input('start_date', date('Y-m-01'));
+        $endDateInput = $request->input('end_date', date('Y-m-t'));
 
         if ($reportType === 'annual') {
             $startDate = $year . '-01-01 00:00:00';
             $endDate = $year . '-12-31 23:59:59';
+        } elseif ($reportType === 'custom') {
+            $startDate = $startDateInput . ' 00:00:00';
+            $endDate = $endDateInput . ' 23:59:59';
         } else {
             $startDate = $month . '-01 00:00:00';
             $endDate = date('Y-m-t 23:59:59', strtotime($startDate));
@@ -160,12 +174,16 @@ class AnalyticsController extends Controller
                 'month' => $month,
                 'year' => $year,
                 'reportType' => $reportType,
+                'startDate' => $startDate,
+                'endDate' => $endDate,
                 'departmentName' => $departmentName
             ])->setPaper('a4', 'landscape');
 
             $filename = $reportType === 'annual' 
                 ? "hr_annual_analytics_report_{$year}.pdf" 
-                : "hr_analytics_report_{$month}.pdf";
+                : ($reportType === 'custom'
+                    ? "hr_custom_analytics_report_{$startDateInput}_to_{$endDateInput}.pdf"
+                    : "hr_analytics_report_{$month}.pdf");
             return $pdf->download($filename);
         }
 

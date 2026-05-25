@@ -19,11 +19,26 @@
                 year: '{{ $year }}',
                 report_type: '{{ $reportType }}',
                 designation_filter: '{{ $designationFilter }}',
+                start_date: '{{ $startDateInput }}',
+                end_date: '{{ $endDateInput }}',
                 showMonthPicker: false,
                 showYearPicker: false,
+                showCustomPicker: false,
                 monthNames: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                formatDateLabel(dateStr) {
+                    if (!dateStr) return '';
+                    const parts = dateStr.split('-');
+                    if (parts.length !== 3) return dateStr;
+                    const year = parts[0];
+                    const monthIndex = parseInt(parts[1], 10) - 1;
+                    const day = parseInt(parts[2], 10);
+                    return this.monthNames[monthIndex] + ' ' + day + ', ' + year;
+                },
                 get monthYearLabel() {
                     if (this.report_type === 'annual') return this.year;
+                    if (this.report_type === 'custom') {
+                        return this.formatDateLabel(this.start_date) + ' - ' + this.formatDateLabel(this.end_date);
+                    }
                     const date = new Date(this.month + '-01');
                     return this.monthNames[date.getMonth()] + ' ' + date.getFullYear();
                 }
@@ -42,6 +57,12 @@
                             :class="report_type === 'annual' ? 'bg-white dark:bg-slate-700 text-brand-teal shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'"
                             class="px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all">
                             Annual
+                        </button>
+                        <button type="button" 
+                            @click="report_type = 'custom'; $nextTick(() => { $el.closest('form').submit() })"
+                            :class="report_type === 'custom' ? 'bg-white dark:bg-slate-700 text-brand-teal shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'"
+                            class="px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all">
+                            Custom
                         </button>
                         <input type="hidden" name="report_type" x-model="report_type">
                     </div>
@@ -86,12 +107,13 @@
                     @endif
 
                     <!-- Period Specific Picker -->
-                    <div class="relative group" @click.away="showMonthPicker = false; showYearPicker = false">
+                    <div class="relative group" @click.away="showMonthPicker = false; showYearPicker = false; showCustomPicker = false">
                         <button type="button" 
-                            @click="report_type === 'monthly' ? showMonthPicker = !showMonthPicker : showYearPicker = !showYearPicker"
-                            class="bg-white dark:bg-slate-800 border-0 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-200 flex items-center gap-3 min-w-[130px] hover:text-brand-teal focus:outline-none focus:ring-0 transition-all shadow-sm">
-                            <span x-text="monthYearLabel"></span>
-                            <svg class="w-3.5 h-3.5 ml-auto text-slate-400 group-hover:text-brand-teal transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z"></path></svg>
+                            @click="report_type === 'monthly' ? showMonthPicker = !showMonthPicker : (report_type === 'annual' ? showYearPicker = !showYearPicker : showCustomPicker = !showCustomPicker)"
+                            :class="report_type === 'custom' ? 'min-w-[220px]' : 'min-w-[130px]'"
+                            class="bg-white dark:bg-slate-800 border-0 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-200 flex items-center gap-3 hover:text-brand-teal focus:outline-none focus:ring-0 transition-all shadow-sm">
+                            <span x-text="monthYearLabel" class="whitespace-nowrap"></span>
+                            <svg class="w-3.5 h-3.5 ml-auto text-brand-teal transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z"></path></svg>
                         </button>
 
                         <!-- Month Picker -->
@@ -99,7 +121,7 @@
                             x-transition:enter="transition ease-out duration-200"
                             x-transition:enter-start="opacity-0 translate-y-2 scale-95"
                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                            class="absolute right-0 mt-3 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-premium p-4 z-50 overflow-hidden">
+                            class="absolute right-0 mt-3 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-premium p-4 z-50 overflow-hidden text-left">
                             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-teal to-blue-500"></div>
                             
                             <!-- Year Selector for Monthly View -->
@@ -131,7 +153,7 @@
                             x-transition:enter="transition ease-out duration-200"
                             x-transition:enter-start="opacity-0 translate-y-2 scale-95"
                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                            class="absolute right-0 mt-3 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-premium p-4 z-50 overflow-hidden">
+                            class="absolute right-0 mt-3 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-premium p-4 z-50 overflow-hidden text-left">
                             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-teal to-blue-500"></div>
                             <select name="year" x-model="year" @change="$el.closest('form').submit()"
                                 class="w-full bg-slate-50 dark:bg-slate-900 border-none rounded-xl text-xs font-bold text-brand-navy dark:text-slate-200 focus:ring-brand-teal">
@@ -140,6 +162,39 @@
                                 @endfor
                             </select>
                         </div>
+
+                        <!-- Custom Date Range Picker -->
+                        <div x-show="showCustomPicker" x-cloak
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                            class="absolute right-0 mt-3 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-premium p-5 z-50 overflow-hidden text-left">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-teal to-blue-500"></div>
+                            
+                            <div class="text-[10px] font-black uppercase text-brand-navy dark:text-white tracking-[0.2em] mb-4">
+                                Select Date Range
+                            </div>
+                            
+                            <div class="flex flex-col gap-3.5">
+                                <div>
+                                    <label class="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Start Date</label>
+                                    <input type="date" x-model="start_date" class="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-brand-teal px-3 py-2">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">End Date</label>
+                                    <input type="date" x-model="end_date" class="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-brand-teal px-3 py-2">
+                                </div>
+                                
+                                <button type="button" 
+                                    @click="showCustomPicker = false; $nextTick(() => { $el.closest('form').submit() })"
+                                    class="w-full mt-2 bg-gradient-to-r from-brand-teal to-blue-600 hover:from-brand-teal hover:to-blue-700 text-white py-2 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-md">
+                                    Apply Filter
+                                </button>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="start_date" x-model="start_date">
+                        <input type="hidden" name="end_date" x-model="end_date">
                     </div>
 
                     <!-- Download Button with Format Options -->
@@ -158,14 +213,14 @@
                             x-transition:enter-start="opacity-0 translate-y-2 scale-95"
                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
                             class="absolute right-0 mt-2 w-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-premium overflow-hidden z-50">
-                            <a :href="'{{ route('analytics.export') }}?department_id=' + department_id + '&month=' + month + '&year=' + year + '&report_type=' + report_type + '&designation_filter=' + designation_filter + '&format=pdf'"
+                            <a :href="'{{ route('analytics.export') }}?department_id=' + department_id + '&month=' + month + '&year=' + year + '&report_type=' + report_type + '&designation_filter=' + designation_filter + '&start_date=' + start_date + '&end_date=' + end_date + '&format=pdf'"
                                 class="flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                 <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                                 </svg>
                                 PDF
                             </a>
-                            <a :href="'{{ route('analytics.export') }}?department_id=' + department_id + '&month=' + month + '&year=' + year + '&report_type=' + report_type + '&designation_filter=' + designation_filter + '&format=csv'"
+                            <a :href="'{{ route('analytics.export') }}?department_id=' + department_id + '&month=' + month + '&year=' + year + '&report_type=' + report_type + '&designation_filter=' + designation_filter + '&start_date=' + start_date + '&end_date=' + end_date + '&format=csv'"
                                 class="flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-t border-slate-100 dark:border-slate-800">
                                 <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>

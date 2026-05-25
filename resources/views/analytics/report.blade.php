@@ -113,8 +113,16 @@
 </head>
 <body>
     <div class="header">
-        <h1>HR {{ $reportType === 'annual' ? 'Annual' : 'Monthly' }} Analytics Report</h1>
-        <p>{{ $reportType === 'annual' ? $year : date('F Y', strtotime($month . '-01')) }}</p>
+        <h1>HR {{ $reportType === 'annual' ? 'Annual' : ($reportType === 'custom' ? 'Custom Period' : 'Monthly') }} Analytics Report</h1>
+        <p>
+            @if($reportType === 'annual')
+                {{ $year }}
+            @elseif($reportType === 'custom')
+                {{ date('d M Y', strtotime($startDate)) }} - {{ date('d M Y', strtotime($endDate)) }}
+            @else
+                {{ date('F Y', strtotime($month . '-01')) }}
+            @endif
+        </p>
     </div>
 
     <div class="info-grid">
