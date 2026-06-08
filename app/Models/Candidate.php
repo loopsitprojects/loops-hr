@@ -67,4 +67,9 @@ class Candidate extends Model
     {
         return $this->hasMany(Interview::class);
     }
+
+    public function getFirstNameAttribute()
+    {
+        return explode(' ', trim($this->name))[0];
+    }
 }

@@ -965,7 +965,7 @@ class RecruitmentController extends Controller
         $uploadLink = route('assessment.show', ['token' => $token]);
 
         // Personalize Greeting and Replace Link
-        $emailContent = str_replace('Dear Candidate', 'Dear ' . $candidate->name, $test->content);
+        $emailContent = str_replace('Dear Candidate', 'Dear ' . $candidate->first_name, $test->content);
         
         // Remove the placeholder from content as it will be in the CTA button instead
         $emailContent = str_replace('[Insert Upload Link Here]', '', $emailContent);
@@ -995,7 +995,7 @@ class RecruitmentController extends Controller
         // Send Email
         $message = $request->input('rejection_message');
         Mail::to($candidate->email)
-            ->send(new CandidateRejectionMail($candidate->name, $message));
+            ->send(new CandidateRejectionMail($candidate->first_name, $message));
 
         // Update Candidate Status
         $candidate->update([
@@ -1077,7 +1077,7 @@ class RecruitmentController extends Controller
             $customMessagePart = $customMessage ? $customMessage . "\n\n--------------------------\n\n" : "";
 
             $description = $customMessagePart . 
-                          "Dear {$candidate->name},\n\n" .
+                          "Dear {$candidate->first_name},\n\n" .
                           "We are pleased to invite you to an interview for the above mentioned vacancy ({$designationName}) at Loops Integrated. Please find the link to the office location below.\n\n" .
                           "https://maps.app.goo.gl/X9Z2b3xaEZS4FTr7A\n\n" .
                           "Should you have any questions or concerns, please do not hesitate to contact me.\n\n" .
