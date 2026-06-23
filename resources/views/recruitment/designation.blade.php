@@ -291,8 +291,8 @@
                                                 class="editable-field block w-full bg-transparent text-[10px] font-bold uppercase cursor-pointer focus:outline-none transition-colors pr-5 text-slate-700 dark:text-white disabled:cursor-not-allowed disabled:opacity-70"
                                                 style="appearance: none !important; -webkit-appearance: none !important; background-color: transparent !important; border: none !important; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right center; background-size: 0.5rem auto;"
                                                 {{ (auth()->user()->isAdmin() || auth()->user()->isHR() || auth()->user()->isHOD() || auth()->user()->isManagers() || auth()->user()->isManager()) ? '' : 'disabled' }}>
-                                                @if(auth()->user()->isAdmin() || auth()->user()->isHR())
-                                                    {{-- Admin and HR see all options --}}
+                                                @if(auth()->user()->isAdmin() || auth()->user()->isHR() || auth()->user()->isManager() || auth()->user()->isHOD())
+                                                    {{-- Admin, HR, Operations Manager, and HOD see all options --}}
                                                     <option value="default" {{ $candidate->stage == 'default' ? 'selected' : '' }}>default</option>
                                                     <option value="shortlisted" {{ $candidate->stage == 'shortlisted' ? 'selected' : '' }}>shortlisted</option>
                                                     <option value="test_sent" {{ $candidate->stage == 'test_sent' ? 'selected' : '' }}>test sent</option>
@@ -307,7 +307,7 @@
                                                     {{-- HOD and Managers see limited options --}}
                                                     @if(!in_array($candidate->stage, ['1st_interview', '2nd_interview', 'rejected']))
                                                         <option value="{{ $candidate->stage }}" selected>{{ str_replace('_', ' ', $candidate->stage) }}</option>
-                                                    @endif
+                                                     @endif
                                                     <option value="1st_interview" {{ $candidate->stage == '1st_interview' ? 'selected' : '' }}>1st interview</option>
                                                     <option value="2nd_interview" {{ $candidate->stage == '2nd_interview' ? 'selected' : '' }}>2nd interview</option>
                                                     <option value="rejected" {{ $candidate->stage == 'rejected' ? 'selected' : '' }}>rejected</option>
@@ -467,7 +467,7 @@
         </div>
     </div>
 
-    @if(Auth::user()->isAdmin() || Auth::user()->isHR() || Auth::user()->isHOD())
+    @if(Auth::user()->isAdmin() || Auth::user()->isHR() || Auth::user()->isHOD() || Auth::user()->isManagers() || Auth::user()->isManager())
     <style>
         /* Force dropdown option visibility */
         select option {

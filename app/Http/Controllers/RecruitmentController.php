@@ -422,7 +422,7 @@ class RecruitmentController extends Controller
     {
         $user = auth()->user();
         
-        // HOD, General Managers, and Operations Manager can only edit 'rating', 'hod_comment', and limited 'stage' values
+        // HOD, General Managers, and Operations Manager can only edit 'rating', 'hod_comment', and 'stage' values
         if ($user->isHOD() || $user->isManagers() || $user->isManager()) {
              // HOD and General Managers must belong to the same department
              if (($user->isHOD() || $user->isManagers()) && $candidate->department_id != $user->department_id) {
@@ -434,8 +434,8 @@ class RecruitmentController extends Controller
                  return response()->json(['error' => 'Unauthorized: You can only edit Rating, Feedback, and Stage'], 403);
              }
 
-             // If editing stage, restrict to specific values
-             if ($request->field === 'stage') {
+             // If editing stage, restrict to specific values (Operations Manager and HOD have no stage restrictions)
+             if ($request->field === 'stage' && !$user->isManager() && !$user->isHOD()) {
                  $allowedStages = ['shortlisted', '1st_interview', '2nd_interview', 'rejected'];
                  $normalizedValue = strtolower(str_replace(' ', '_', trim($request->value)));
                  
