@@ -38,6 +38,24 @@ class Candidate extends Model
         'is_archived' => 'boolean',
     ];
 
+    protected static function booted()
+    {
+        static::created(function ($candidate) {
+            if ($candidate->hod_comment) {
+                $user = User::whereIn('role', [User::ROLE_SUPER_ADMIN, User::ROLE_HR_ADMIN])->first()
+                    ?? User::where('role', User::ROLE_HOD)->first()
+                    ?? User::first();
+
+                if ($user) {
+                    $candidate->feedbacks()->create([
+                        'user_id' => $user->id,
+                        'feedback' => $candidate->hod_comment,
+                    ]);
+                }
+            }
+        });
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_archived', false);
@@ -66,6 +84,11 @@ class Candidate extends Model
     public function interviews()
     {
         return $this->hasMany(Interview::class);
+    }
+
+    public function feedbacks()
+    {
+        return $this->hasMany(CandidateFeedback::class)->with('user')->orderBy('created_at', 'desc');
     }
 
     public function getFirstNameAttribute()

@@ -5,7 +5,18 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>@yield('title', config('app.name', 'Laravel'))</title>
+        @php
+            $pageTitle = trim($__env->yieldContent('title'));
+            if (empty($pageTitle)) {
+                $pageTitle = config('app.name', 'Laravel');
+            } else {
+                $appName = config('app.name');
+                if ($appName && str_ends_with($pageTitle, ' | ' . $appName)) {
+                    $pageTitle = substr($pageTitle, 0, -strlen(' | ' . $appName));
+                }
+            }
+        @endphp
+        <title>{{ $pageTitle }}</title>
         <link rel="icon" href="{{ asset('loops-icon.png') }}" type="image/png">
 
         <!-- Fonts -->

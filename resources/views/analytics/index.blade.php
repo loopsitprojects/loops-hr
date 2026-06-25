@@ -1,4 +1,5 @@
 <x-app-layout>
+    @section('title', 'HR Analytics Dashboard | ' . config('app.name'))
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-32 flex flex-col gap-16">
         <!-- Header Section -->
         <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-12 mb-10">

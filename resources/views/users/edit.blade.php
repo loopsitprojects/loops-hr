@@ -1,4 +1,5 @@
 <x-app-layout>
+    @section('title', 'Edit User | ' . config('app.name'))
     <x-slot name="header">
         <div class="flex items-center px-2">
             <a href="{{ route('users.index') }}" class="mr-4 p-2 bg-white rounded-xl shadow-soft border border-gray-100 text-brand-navy hover:bg-brand-navy hover:text-white transition-all duration-300">

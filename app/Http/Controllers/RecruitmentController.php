@@ -9,6 +9,7 @@ use App\Models\Department;
 use App\Models\Designation;
 use App\Models\Test;
 use App\Models\CandidateAssessment;
+use App\Models\CandidateFeedback;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -145,7 +146,7 @@ class RecruitmentController extends Controller
 
         // Original $candidates = $query->with(['assessments', 'interviews'])->latest()->paginate(10)->withQueryString();
         // Replaced with new logic from instruction
-        $candidates = $query->with(['assessments', 'interviews'])->latest()->paginate(10)->withQueryString();
+        $candidates = $query->with(['assessments', 'interviews', 'feedbacks'])->latest()->paginate(10)->withQueryString();
         
         $stages = [
             'default' => 'Default',
@@ -1180,5 +1181,78 @@ class RecruitmentController extends Controller
         );
 
         return response()->json(['success' => true, 'message' => 'Template updated successfully']);
-    }
+     }
+
+     public function getFeedbacks(Candidate $candidate)
+     {
+         $feedbacks = $candidate->feedbacks()
+             ->with('user')
+             ->orderBy('created_at', 'desc')
+             ->get();
+
+         return response()->json([
+             'success' => true,
+             'feedbacks' => $feedbacks
+         ]);
+     }
+
+     public function storeFeedback(Request $request, Candidate $candidate)
+     {
+         $request->validate([
+             'feedback' => 'required|string|max:5000',
+         ]);
+
+         $feedback = CandidateFeedback::create([
+             'candidate_id' => $candidate->id,
+             'user_id' => auth()->id(),
+             'feedback' => $request->feedback
+         ]);
+
+         return response()->json([
+             'success' => true,
+             'feedback' => $feedback->load('user'),
+             'message' => 'Feedback saved successfully.'
+         ]);
+     }
+
+     public function updateFeedback(Request $request, CandidateFeedback $feedback)
+     {
+         $user = auth()->user();
+         $isSuperAdmin = $user->role === User::ROLE_SUPER_ADMIN || $user->is_super_admin;
+
+         if (!$isSuperAdmin && $user->id !== $feedback->user_id) {
+             return response()->json(['success' => false, 'error' => 'Unauthorized to edit this feedback.'], 403);
+         }
+
+         $request->validate([
+             'feedback' => 'required|string|max:5000',
+         ]);
+
+         $feedback->update([
+             'feedback' => $request->feedback
+         ]);
+
+         return response()->json([
+             'success' => true,
+             'feedback' => $feedback->load('user'),
+             'message' => 'Feedback updated successfully.'
+         ]);
+     }
+
+     public function destroyFeedback(CandidateFeedback $feedback)
+     {
+         $user = auth()->user();
+         $isSuperAdmin = $user->role === User::ROLE_SUPER_ADMIN || $user->is_super_admin;
+
+         if (!$isSuperAdmin && $user->id !== $feedback->user_id) {
+             return response()->json(['success' => false, 'error' => 'Unauthorized to delete this feedback.'], 403);
+         }
+
+         $feedback->delete();
+
+         return response()->json([
+             'success' => true,
+             'message' => 'Feedback deleted successfully.'
+         ]);
+     }
 }

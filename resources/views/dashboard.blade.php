@@ -105,7 +105,24 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @forelse($activeDesignations as $deptName => $designations)
                         <div class="border border-gray-100 dark:border-slate-800 rounded-2xl p-5 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors duration-200">
-                            <h4 class="text-brand-teal dark:text-brand-accent font-black uppercase tracking-wider text-xs mb-4">{{ $deptName ?? 'Unassigned' }}</h4>
+                            @php
+                                $dept = $designations->first()->department ?? null;
+                                $user = auth()->user();
+                                $hasPrivilege = $dept && ! (($user->isHOD() || $user->isManagers()) && $user->department_id != $dept->id);
+                            @endphp
+                            
+                            @if($hasPrivilege)
+                                <h4 class="text-brand-teal dark:text-brand-accent font-black uppercase tracking-wider text-xs mb-4">
+                                    <a href="{{ route('recruitment.department', $dept) }}" class="hover:underline hover:text-brand-teal dark:hover:text-brand-accent transition-colors duration-200">
+                                        {{ $deptName ?? 'Unassigned' }}
+                                    </a>
+                                </h4>
+                            @else
+                                <h4 class="text-brand-teal dark:text-brand-accent font-black uppercase tracking-wider text-xs mb-4">
+                                    {{ $deptName ?? 'Unassigned' }}
+                                </h4>
+                            @endif
+                            
                             <ul class="space-y-5">
                                 @foreach($designations as $designation)
                                     @php $count = $designation->candidates_count ?? $designation->candidates()->count(); @endphp

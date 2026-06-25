@@ -1,4 +1,5 @@
 <x-app-layout>
+    @section('title', 'New Application | ' . config('app.name'))
     <x-slot name="header">
         <div class="flex items-center px-2">
             <a href="{{ url()->previous() }}" class="mr-4 p-2 bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-gray-100 dark:border-slate-700 text-brand-navy dark:text-gray-100 hover:bg-brand-navy dark:hover:bg-brand-teal hover:text-white transition-all duration-300">

@@ -1,4 +1,5 @@
 <x-app-layout>
+    @section('title', 'Assessment Tests | ' . config('app.name'))
     <x-slot name="header">
         <div class="flex justify-between items-center px-4 gap-6">
             <div>

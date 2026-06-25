@@ -349,15 +349,35 @@
                                             <span class="text-[8px] text-slate-400 font-bold ml-1">/5</span>
                                         </div>
                                     </td>
-                                    <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
-                                        <button class="feedback-trigger inline-flex items-center justify-center w-7 h-7 rounded-full transition-all {{ $candidate->hod_comment ? 'bg-brand-teal/20 text-brand-teal ring-1 ring-brand-teal/30 hover:bg-brand-teal/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 hover:text-brand-teal hover:bg-brand-teal/10' }}"
+                                    <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center relative group/tooltip">
+                                        <button class="feedback-trigger inline-flex items-center justify-center w-7 h-7 rounded-full transition-all {{ $candidate->feedbacks->isNotEmpty() ? 'bg-brand-teal/20 text-brand-teal ring-1 ring-brand-teal/30 hover:bg-brand-teal/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 hover:text-brand-teal hover:bg-brand-teal/10' }}"
                                             data-candidate-id="{{ $candidate->id }}"
-                                            title="{{ $candidate->hod_comment ? e($candidate->hod_comment) : 'Add comment' }}"
-                                            onclick="openFeedbackModal({{ $candidate->id }}, '{{ str_replace(["\r", "\n", "'"], ['', '\n', "\\'"], $candidate->hod_comment) }}')">
+                                            title="{{ $candidate->feedbacks->isNotEmpty() ? $candidate->feedbacks->count() . ' Feedback(s)' : 'Add feedback' }}"
+                                            onclick="openFeedbackModal({{ $candidate->id }})">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
                                             </svg>
                                         </button>
+
+                                        @if($candidate->feedbacks->isNotEmpty())
+                                            <!-- Hover Tooltip -->
+                                            <div class="feedback-tooltip pointer-events-none opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-200 absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-slate-900/95 dark:bg-slate-950/95 backdrop-blur-md rounded-xl p-3 shadow-xl border border-slate-800/80 text-left z-50">
+                                                <p class="text-[9px] font-black uppercase tracking-wider text-brand-teal mb-2 border-b border-slate-800 pb-1">Previous Feedbacks ({{ $candidate->feedbacks->count() }})</p>
+                                                <div class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
+                                                    @foreach($candidate->feedbacks as $f)
+                                                        <div class="text-[10px] leading-tight">
+                                                            <div class="flex justify-between items-center gap-1 font-bold text-slate-300">
+                                                                <span>{{ $f->user->name }}</span>
+                                                                <span class="text-[8px] text-slate-500 font-medium">{{ $f->created_at->diffForHumans() }}</span>
+                                                            </div>
+                                                            <p class="text-slate-400 font-medium mt-0.5 line-clamp-2">{{ $f->feedback }}</p>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                                <!-- Down Arrow -->
+                                                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900/95 dark:border-t-slate-950/95"></div>
+                                            </div>
+                                        @endif
                                     </td>
 
                                     @if(auth()->user()->isAdmin() || auth()->user()->isHR())
@@ -1557,16 +1577,51 @@
                 </div>
                 <div class="p-8">
                     <input type="hidden" id="feedback-candidate-id">
-                    <div class="mb-4">
-                        <label class="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3">Your Feedback/Comments</label>
-                        <textarea id="feedback-textarea" rows="8" 
-                            class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-6 py-5 text-sm focus:ring-2 focus:ring-brand-teal/20 transition-all text-slate-700 dark:text-white placeholder:text-slate-400 resize-none"
+                    
+                    <!-- Previous Feedbacks Feed -->
+                    <div class="mb-6">
+                        <label class="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3">Previous Feedbacks</label>
+                        <div id="previous-feedbacks-container" class="max-h-[250px] overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- New Feedback TextArea -->
+                    <div class="border-t border-slate-100 dark:border-slate-800 pt-6">
+                        <label class="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3">Add Feedback</label>
+                        <textarea id="feedback-textarea" rows="4" 
+                            class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-brand-teal/20 transition-all text-slate-700 dark:text-white placeholder:text-slate-400 resize-none"
                             placeholder="Type your feedback here..."></textarea>
                     </div>
                 </div>
                 <div class="px-8 py-6 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3 rounded-b-3xl">
                     <button onclick="closeFeedbackModal()" class="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Cancel</button>
                     <button onclick="saveFeedback()" class="px-8 py-3 bg-brand-navy dark:bg-brand-teal text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg active:scale-95">Save Feedback</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Single Feedback Modal -->
+    <div id="viewFeedbackModal" class="hidden fixed inset-0 z-[99999999] overflow-y-auto" style="z-index: 99999999 !important;" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-slate-900/70 backdrop-blur-md transition-opacity" aria-hidden="true" onclick="closeViewFeedbackModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-100 dark:border-slate-800 relative z-[99] shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+                <div class="px-10 py-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start">
+                    <div>
+                        <h3 class="text-xl font-black text-brand-navy dark:text-white uppercase tracking-tighter" id="view-feedback-user-name">Feedback Details</h3>
+                        <p class="text-xs text-slate-400 uppercase tracking-widest mt-1" id="view-feedback-user-role-date"></p>
+                    </div>
+                    <button onclick="closeViewFeedbackModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors mt-1">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="p-8">
+                    <div id="view-feedback-content" class="text-sm text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-wrap max-h-[400px] overflow-y-auto custom-scrollbar"></div>
+                </div>
+                <div class="px-8 py-6 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3 rounded-b-3xl">
+                    <button onclick="closeViewFeedbackModal()" class="px-8 py-3 bg-brand-navy dark:bg-brand-teal text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg active:scale-95">Close</button>
                 </div>
             </div>
         </div>
@@ -1918,13 +1973,282 @@ We appreciate the opportunity to review your profile and wish you the very best 
             openRejectionModal(candidateId, candidateName);
         }
 
-        function openFeedbackModal(candidateId, feedback) {
+        const CURRENT_USER = {
+            id: {{ auth()->user()->id }},
+            role: '{{ auth()->user()->role }}',
+            is_super_admin: {{ auth()->user()->is_super_admin ? 'true' : 'false' }}
+        };
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        async function updateTableBadge(candidateId) {
+            try {
+                const response = await fetch(`/recruitment/candidate/${candidateId}/feedbacks`);
+                const data = await response.json();
+                if (data.success) {
+                    const feedbacks = data.feedbacks;
+                    const trigger = document.querySelector(`.feedback-trigger[data-candidate-id="${candidateId}"]`);
+                    if (trigger) {
+                        const parentCell = trigger.closest('td');
+                        let tooltip = parentCell.querySelector('.feedback-tooltip');
+
+                        if (feedbacks.length > 0) {
+                            trigger.className = trigger.className
+                                .replace(/bg-slate-100[^\s]*/g, '')
+                                .replace(/dark:bg-slate-800[^\s]*/g, '')
+                                .replace(/text-slate-400[^\s]*/g, '')
+                                .replace(/dark:text-slate-600[^\s]*/g, '');
+                            trigger.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-400', 'dark:text-slate-600', 'hover:text-brand-teal', 'hover:bg-brand-teal/10');
+                            trigger.classList.add('bg-brand-teal/20', 'text-brand-teal', 'ring-1', 'ring-brand-teal/30', 'hover:bg-brand-teal/30');
+                            trigger.title = `${feedbacks.length} Feedback(s)`;
+
+                            // Build the tooltip content dynamically
+                            let listHtml = '';
+                            feedbacks.forEach(f => {
+                                listHtml += `
+                                    <div class="text-[10px] leading-tight">
+                                        <div class="flex justify-between items-center gap-1 font-bold text-slate-300">
+                                            <span>${escapeHtml(f.user.name)}</span>
+                                            <span class="text-[8px] text-slate-500 font-medium">${formatDate(f.created_at)}</span>
+                                        </div>
+                                        <p class="text-slate-400 font-medium mt-0.5 line-clamp-2">${escapeHtml(f.feedback)}</p>
+                                    </div>
+                                `;
+                            });
+
+                            const tooltipHtml = `
+                                <p class="text-[9px] font-black uppercase tracking-wider text-brand-teal mb-2 border-b border-slate-800 pb-1">Previous Feedbacks (${feedbacks.length})</p>
+                                <div class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
+                                    ${listHtml}
+                                </div>
+                                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900/95 dark:border-t-slate-950/95"></div>
+                            `;
+
+                            if (!tooltip) {
+                                tooltip = document.createElement('div');
+                                tooltip.className = 'feedback-tooltip pointer-events-none opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-200 absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-slate-900/95 dark:bg-slate-950/95 backdrop-blur-md rounded-xl p-3 shadow-xl border border-slate-800/80 text-left z-50';
+                                parentCell.appendChild(tooltip);
+                            }
+                            tooltip.innerHTML = tooltipHtml;
+                            tooltip.classList.remove('hidden');
+                        } else {
+                            trigger.classList.remove('bg-brand-teal/20', 'text-brand-teal', 'ring-1', 'ring-brand-teal/30', 'hover:bg-brand-teal/30');
+                            trigger.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-400', 'dark:text-slate-600', 'hover:text-brand-teal', 'hover:bg-brand-teal/10');
+                            trigger.title = 'Add feedback';
+                            if (tooltip) {
+                                tooltip.classList.add('hidden');
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Error updating badge:', e);
+            }
+        }
+
+        async function loadFeedbacks(candidateId) {
+            const container = document.getElementById('previous-feedbacks-container');
+            container.innerHTML = '<div class="text-xs font-semibold text-slate-400 py-4 text-center italic">Loading feedbacks...</div>';
+            
+            try {
+                const response = await fetch(`/recruitment/candidate/${candidateId}/feedbacks`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const feedbacks = data.feedbacks;
+                    if (feedbacks.length === 0) {
+                        container.innerHTML = '<div class="text-xs font-semibold text-slate-400 py-6 text-center italic">No feedback given yet. Be the first to leave a comment!</div>';
+                        return;
+                    }
+                    
+                    container.innerHTML = '';
+                    feedbacks.forEach(feedback => {
+                        const isSuperAdmin = CURRENT_USER.role === 'Super Admin' || CURRENT_USER.is_super_admin;
+                        const canModify = isSuperAdmin || CURRENT_USER.id === feedback.user_id;
+                        
+                        let actionsHtml = '';
+                        if (canModify) {
+                            actionsHtml = `
+                                <div class="flex items-center gap-1.5 ml-2">
+                                    <button onclick="editFeedbackInline(${feedback.id}, this)" class="text-slate-400 hover:text-brand-teal p-1 transition-colors" title="Edit Feedback">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                    </button>
+                                    <button onclick="deleteFeedback(${feedback.id}, this)" class="text-slate-400 hover:text-red-500 p-1 transition-colors" title="Delete Feedback">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </div>
+                            `;
+                        }
+                        
+                        const itemHtml = `
+                            <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-800/80 relative group/item">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <div class="flex items-center gap-2">
+                                        <span class="feedback-user-name text-xs font-black text-brand-navy dark:text-white">${escapeHtml(feedback.user.name)}</span>
+                                        <span class="feedback-user-role text-[8px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-md bg-brand-teal/10 text-brand-teal">${escapeHtml(feedback.user.role)}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="feedback-date text-[9px] text-slate-400 font-medium">${formatDate(feedback.created_at)}</span>
+                                        ${actionsHtml}
+                                    </div>
+                                </div>
+                                <p onclick="openViewFeedbackModal(this)"
+                                   data-feedback-full="${escapeHtml(feedback.feedback)}"
+                                   class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap cursor-pointer hover:text-brand-teal transition-colors"
+                                   title="Click to view full feedback">${escapeHtml(feedback.feedback)}</p>
+                            </div>
+                        `;
+                        container.insertAdjacentHTML('beforeend', itemHtml);
+                    });
+                } else {
+                    container.innerHTML = '<div class="text-xs font-semibold text-red-500 py-4 text-center">Failed to load feedbacks.</div>';
+                }
+            } catch (error) {
+                console.error('Load feedbacks error:', error);
+                container.innerHTML = '<div class="text-xs font-semibold text-red-500 py-4 text-center">An error occurred loading feedbacks.</div>';
+            }
+        }
+
+        function editFeedbackInline(feedbackId, buttonEl) {
+            const itemEl = buttonEl.closest('.group\\/item');
+            const contentEl = itemEl.querySelector('p');
+            const originalText = contentEl.textContent.trim();
+            
+            if (itemEl.classList.contains('is-editing')) return;
+            itemEl.classList.add('is-editing');
+            
+            const textarea = document.createElement('textarea');
+            textarea.className = 'w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-700 dark:text-white placeholder:text-slate-400 focus:ring-1 focus:ring-brand-teal focus:border-brand-teal resize-none mb-2 mt-2';
+            textarea.rows = 4;
+            textarea.value = originalText;
+            
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'px-3 py-1.5 bg-brand-teal text-white rounded-lg text-[9px] font-bold uppercase tracking-wider hover:opacity-90 transition-all mr-2';
+            saveBtn.textContent = 'Save';
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-slate-200 transition-all';
+            cancelBtn.textContent = 'Cancel';
+            
+            saveBtn.onclick = async function() {
+                const newText = textarea.value.trim();
+                if (!newText) {
+                    alert('Feedback cannot be empty.');
+                    return;
+                }
+                
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Saving...';
+                
+                try {
+                    const response = await fetch(`/recruitment/feedbacks/${feedbackId}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ feedback: newText })
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        contentEl.textContent = newText;
+                        contentEl.setAttribute('data-feedback-full', newText);
+                        itemEl.classList.remove('is-editing');
+                        textarea.remove();
+                        saveBtn.remove();
+                        cancelBtn.remove();
+                        contentEl.classList.remove('hidden');
+                        
+                        const candidateId = document.getElementById('feedback-candidate-id').value;
+                        updateTableBadge(candidateId);
+                    } else {
+                        alert(data.error || 'Failed to save feedback.');
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = 'Save';
+                    }
+                } catch (error) {
+                    console.error('Error saving feedback:', error);
+                    alert('An error occurred.');
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Save';
+                }
+            };
+            
+            cancelBtn.onclick = function() {
+                itemEl.classList.remove('is-editing');
+                textarea.remove();
+                saveBtn.remove();
+                cancelBtn.remove();
+                contentEl.classList.remove('hidden');
+            };
+            
+            contentEl.classList.add('hidden');
+            contentEl.after(textarea, saveBtn, cancelBtn);
+            textarea.focus();
+        }
+
+        async function deleteFeedback(feedbackId, buttonEl) {
+            if (!confirm('Are you sure you want to delete this feedback?')) return;
+            
+            const itemEl = buttonEl.closest('.group\\/item');
+            
+            try {
+                const response = await fetch(`/recruitment/feedbacks/${feedbackId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    itemEl.remove();
+                    const candidateId = document.getElementById('feedback-candidate-id').value;
+                    updateTableBadge(candidateId);
+                    
+                    const container = document.getElementById('previous-feedbacks-container');
+                    if (container.children.length === 0) {
+                        container.innerHTML = '<div class="text-xs font-semibold text-slate-400 py-6 text-center italic">No feedback given yet. Be the first to leave a comment!</div>';
+                    }
+                } else {
+                    alert(data.error || 'Failed to delete feedback.');
+                }
+            } catch (error) {
+                console.error('Error deleting feedback:', error);
+                alert('An error occurred.');
+            }
+        }
+
+        async function openFeedbackModal(candidateId) {
             document.getElementById('feedback-candidate-id').value = candidateId;
-            document.getElementById('feedback-textarea').value = feedback || '';
+            document.getElementById('feedback-textarea').value = '';
             document.getElementById('feedbackModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
             
-            // Focus textarea after a short delay for animation compatibility
+            await loadFeedbacks(candidateId);
+            
             setTimeout(() => {
                 document.getElementById('feedback-textarea').focus();
             }, 100);
@@ -1935,9 +2259,33 @@ We appreciate the opportunity to review your profile and wish you the very best 
             document.body.style.overflow = 'auto';
         }
 
+        function openViewFeedbackModal(el) {
+            const itemEl = el.closest('.group\\/item');
+            if (!itemEl || itemEl.classList.contains('is-editing')) return;
+            
+            const name = itemEl.querySelector('.feedback-user-name').textContent.trim();
+            const role = itemEl.querySelector('.feedback-user-role').textContent.trim();
+            const date = itemEl.querySelector('.feedback-date').textContent.trim();
+            const feedbackText = el.getAttribute('data-feedback-full');
+
+            document.getElementById('view-feedback-user-name').textContent = name;
+            document.getElementById('view-feedback-user-role-date').textContent = `${role} • ${date}`;
+            document.getElementById('view-feedback-content').textContent = feedbackText;
+
+            document.getElementById('viewFeedbackModal').classList.remove('hidden');
+        }
+
+        function closeViewFeedbackModal() {
+            document.getElementById('viewFeedbackModal').classList.add('hidden');
+        }
+
         async function saveFeedback() {
             const candidateId = document.getElementById('feedback-candidate-id').value;
-            const feedback = document.getElementById('feedback-textarea').value;
+            const feedbackText = document.getElementById('feedback-textarea').value.trim();
+            if (!feedbackText) {
+                alert('Please enter a feedback comment.');
+                return;
+            }
             const btn = document.querySelector('#feedbackModal button[onclick="saveFeedback()"]');
             
             const originalText = btn.textContent;
@@ -1945,37 +2293,23 @@ We appreciate the opportunity to review your profile and wish you the very best 
             btn.textContent = 'Saving...';
 
             try {
-                const response = await fetch(`/recruitment/candidate/${candidateId}`, {
-                    method: 'PATCH',
+                const response = await fetch(`/recruitment/candidate/${candidateId}/feedbacks`, {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify({
-                        field: 'hod_comment',
-                        value: feedback
+                        feedback: feedbackText
                     })
                 });
 
                 const data = await response.json();
                 if (data.success) {
-                    // Update UI cell content
-                    const cell = document.querySelector(`.feedback-trigger[data-candidate-id="${candidateId}"]`);
-                    if (cell) {
-                        cell.setAttribute('onclick', `openFeedbackModal(${candidateId}, '${feedback.replace(/'/g, "\\'")}')`);
-                        const textEl = cell.querySelector('.feedback-text');
-                        if (textEl) {
-                            textEl.textContent = feedback || 'Add feedback...';
-                            if (!feedback) {
-                                textEl.classList.add('italic', 'opacity-60');
-                            } else {
-                                textEl.classList.remove('italic', 'opacity-60');
-                            }
-                        }
-                    }
-                    closeFeedbackModal();
-                    // Show success notification if you have one, or just close
+                    document.getElementById('feedback-textarea').value = '';
+                    await loadFeedbacks(candidateId);
+                    updateTableBadge(candidateId);
                 } else {
                     alert(data.error || 'Failed to save feedback');
                 }

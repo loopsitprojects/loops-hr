@@ -1,4 +1,5 @@
 <x-app-layout>
+    @section('title', 'System Users | ' . config('app.name'))
     <x-slot name="header">
         <div class="flex justify-between items-center px-2">
             <div>
