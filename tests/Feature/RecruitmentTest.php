@@ -40,8 +40,8 @@ class RecruitmentTest extends TestCase
         $dept2 = Department::create(['name' => 'Sales Dept']);
 
         // Create active designations for each so they show up on the dashboard
-        Designation::create(['name' => 'Developer', 'department_id' => $dept1->id, 'is_active' => true]);
-        Designation::create(['name' => 'Sales Rep', 'department_id' => $dept2->id, 'is_active' => true]);
+        $desig1 = Designation::create(['name' => 'Developer', 'department_id' => $dept1->id, 'is_active' => true]);
+        $desig2 = Designation::create(['name' => 'Sales Rep', 'department_id' => $dept2->id, 'is_active' => true]);
 
         // Scenario 1: HOD of IT Dept
         $hodUser = User::factory()->create([
@@ -55,6 +55,10 @@ class RecruitmentTest extends TestCase
         $response->assertSee(route('recruitment.department', $dept1));
         // HOD does not have privilege for Sales Dept, so it should not be a link
         $response->assertDontSee(route('recruitment.department', $dept2));
+        // HOD should see designation links for IT Dept
+        $response->assertSee(route('recruitment.designation', [$dept1, $desig1]));
+        // HOD should not see designation links for Sales Dept
+        $response->assertDontSee(route('recruitment.designation', [$dept2, $desig2]));
 
         // Scenario 2: Super Admin
         $adminUser = User::factory()->create([
@@ -66,6 +70,9 @@ class RecruitmentTest extends TestCase
         // Admin has privilege for both
         $response->assertSee(route('recruitment.department', $dept1));
         $response->assertSee(route('recruitment.department', $dept2));
+        // Admin should see both designation links
+        $response->assertSee(route('recruitment.designation', [$dept1, $desig1]));
+        $response->assertSee(route('recruitment.designation', [$dept2, $desig2]));
     }
 
     public function test_candidate_feedback_crud_and_permissions()

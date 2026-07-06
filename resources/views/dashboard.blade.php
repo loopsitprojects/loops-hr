@@ -126,11 +126,22 @@
                             <ul class="space-y-5">
                                 @foreach($designations as $designation)
                                     @php $count = $designation->candidates_count ?? $designation->candidates()->count(); @endphp
-                                    <li class="flex items-center justify-between group/item py-0.5">
-                                        <span class="text-brand-navy dark:text-slate-300 font-medium group-hover/item:text-brand-teal transition-colors duration-200">{{ $designation->name }}</span>
-                                        <span class="font-black text-sm {{ $count > 0 ? 'text-brand-teal dark:text-brand-accent' : 'text-gray-300 dark:text-slate-700' }} ml-4 transition-all duration-300">
-                                            {{ $count }}
-                                        </span>
+                                    <li class="py-0.5">
+                                        @if($hasPrivilege && $dept)
+                                            <a href="{{ route('recruitment.designation', [$dept, $designation]) }}" class="flex items-center justify-between w-full group/item">
+                                                <span class="text-brand-navy dark:text-slate-300 font-medium group-hover/item:text-brand-teal transition-colors duration-200">{{ $designation->name }}</span>
+                                                <span class="font-black text-sm {{ $count > 0 ? 'text-brand-teal dark:text-brand-accent' : 'text-gray-300 dark:text-slate-700' }} ml-4 transition-all duration-300">
+                                                    {{ $count }}
+                                                </span>
+                                            </a>
+                                        @else
+                                            <div class="flex items-center justify-between w-full group/item">
+                                                <span class="text-brand-navy dark:text-slate-300 font-medium group-hover/item:text-brand-teal transition-colors duration-200">{{ $designation->name }}</span>
+                                                <span class="font-black text-sm {{ $count > 0 ? 'text-brand-teal dark:text-brand-accent' : 'text-gray-300 dark:text-slate-700' }} ml-4 transition-all duration-300">
+                                                    {{ $count }}
+                                                </span>
+                                            </div>
+                                        @endif
                                     </li>
                                 @endforeach
                             </ul>
