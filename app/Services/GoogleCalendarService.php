@@ -23,8 +23,34 @@ class GoogleCalendarService
         // Path to store access/refresh tokens
         $this->tokenPath = storage_path('app/google-calendar-token.json');
         
+        $clientId = config('services.google.client_id');
+        $clientSecret = config('services.google.client_secret');
+        $redirectUri = config('services.google.redirect_uri');
+
+        $hasEnvCredentials = $clientId && 
+                             $clientId !== 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com' &&
+                             $clientSecret &&
+                             $clientSecret !== 'YOUR_GOOGLE_CLIENT_SECRET';
+
+        $hasConfig = false;
         if (file_exists($this->credentialsPath)) {
-            $this->client->setAuthConfig($this->credentialsPath);
+            // Check if JSON file is just placeholder
+            $jsonContent = json_decode(file_get_contents($this->credentialsPath), true);
+            $jsonClientId = $jsonContent['web']['client_id'] ?? '';
+            if ($jsonClientId && $jsonClientId !== 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+                $this->client->setAuthConfig($this->credentialsPath);
+                $hasConfig = true;
+            }
+        }
+
+        if (!$hasConfig && $hasEnvCredentials) {
+            $this->client->setClientId($clientId);
+            $this->client->setClientSecret($clientSecret);
+            $this->client->setRedirectUri($redirectUri);
+            $hasConfig = true;
+        }
+
+        if ($hasConfig) {
             $this->client->addScope(Calendar::CALENDAR);
             $this->client->setAccessType('offline');
             $this->client->setPrompt('consent');
@@ -58,8 +84,11 @@ class GoogleCalendarService
 
     public function getAuthUrl()
     {
-        if (!file_exists($this->credentialsPath)) {
-            throw new \Exception('OAuth credentials file not found. Please add google-oauth-credentials.json to storage/app/');
+        $clientId = config('services.google.client_id');
+        $hasEnvCredentials = $clientId && $clientId !== 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+
+        if (!file_exists($this->credentialsPath) && !$hasEnvCredentials) {
+            throw new \Exception('OAuth credentials not configured. Please add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to your .env file, or place google-oauth-credentials.json in storage/app/.');
         }
         
         return $this->client->createAuthUrl();

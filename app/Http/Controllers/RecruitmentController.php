@@ -1067,7 +1067,7 @@ class RecruitmentController extends Controller
         $googleService = new GoogleCalendarService();
         
         try {
-            $resumeLink = $candidate->cv_path ? rtrim(config('filesystems.disks.ftp_cvs.url'), '/') . '/' . ltrim($candidate->cv_path, '/') : 'Not available';
+            $resumeLink = $candidate->cv_path ? rtrim(config('filesystems.disks.ftp_cvs.url'), '/') . '/' . implode('/', array_map('rawurlencode', explode('/', ltrim($candidate->cv_path, '/')))) : 'Not available';
             $designationName = $candidate->designation->name ?? $candidate->designation ?? 'Potential Hire';
             
             $interviewerNames = $interviewers->pluck('name')->implode(', ');

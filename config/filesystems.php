@@ -60,7 +60,7 @@ return [
             'report' => false,
         ],
 
-        'ftp_cvs' => [
+        'ftp_cvs' => env('FTP_HOST') ? [
             'driver' => 'ftp',
             'host' => env('FTP_HOST'),
             'username' => env('FTP_USERNAME'),
@@ -72,6 +72,12 @@ return [
             'timeout' => 30,
             'url' => env('FTP_URL'),
             'visibility' => 'public',
+        ] : [
+            'driver' => 'local',
+            'root' => public_path('CV_upload'),
+            'url' => env('APP_URL', 'http://127.0.0.1:8000') . '/CV_upload',
+            'visibility' => 'public',
+            'throw' => false,
         ],
 
     ],
