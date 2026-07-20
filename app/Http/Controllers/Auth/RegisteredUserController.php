@@ -35,7 +35,7 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'string', 'in:' . implode(',', [User::ROLE_SUPER_ADMIN, User::ROLE_HR_ADMIN, User::ROLE_MANAGER, User::ROLE_HOD])],
+            'role' => ['required', 'string', 'in:' . implode(',', [User::ROLE_SUPER_ADMIN, User::ROLE_HR_ADMIN, User::ROLE_MANAGER, User::ROLE_MANAGERS, User::ROLE_HOD, 'Manager'])],
             'department_id' => ['nullable', 'exists:departments,id'],
         ]);
 
