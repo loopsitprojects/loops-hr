@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/recruitment/candidate/{candidate}/archive', [\App\Http\Controllers\RecruitmentController::class, 'archiveCandidate'])->name('recruitment.archiveCandidate');
     Route::post('/recruitment/candidate/{candidate}/unarchive', [\App\Http\Controllers\RecruitmentController::class, 'unarchiveCandidate'])->name('recruitment.unarchiveCandidate');
     Route::post('/recruitment/candidates/bulk-archive', [\App\Http\Controllers\RecruitmentController::class, 'bulkArchive'])->name('recruitment.bulkArchive');
+    Route::post('/recruitment/candidates/bulk-unarchive', [\App\Http\Controllers\RecruitmentController::class, 'bulkUnarchive'])->name('recruitment.bulkUnarchive');
     Route::post('/recruitment/candidates/bulk-destroy', [\App\Http\Controllers\RecruitmentController::class, 'bulkDestroy'])->name('recruitment.bulkDestroy');
 
     // Assessment Features

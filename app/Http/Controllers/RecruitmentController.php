@@ -562,6 +562,23 @@ class RecruitmentController extends Controller
         return redirect()->back()->with('success', 'Selected candidates archived successfully.');
     }
 
+    public function bulkUnarchive(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user->isAdmin() && !$user->isHR()) {
+            return redirect()->back()->with('error', 'Unauthorized access.');
+        }
+
+        $request->validate([
+            'selected_candidates' => 'required|array',
+            'selected_candidates.*' => 'exists:candidates,id',
+        ]);
+
+        Candidate::whereIn('id', $request->selected_candidates)->update(['is_archived' => false]);
+
+        return redirect()->back()->with('success', 'Selected candidates restored from archive.');
+    }
+
     public function bulkDestroy(Request $request)
     {
         $user = auth()->user();

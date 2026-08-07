@@ -45,15 +45,40 @@
             <div class="flex flex-wrap items-center gap-4 justify-end">
                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
                 <form id="bulk-delete-form" 
-                      action="{{ $showArchived ? route('recruitment.bulkDestroy') : route('recruitment.bulkArchive') }}" 
+                      action="{{ $showArchived ? route('recruitment.bulkUnarchive') : route('recruitment.bulkArchive') }}" 
                       method="POST" 
-                      onsubmit="return confirm('{{ $showArchived ? 'Are you sure you want to PERMANENTLY DELETE the selected candidates? This action cannot be undone.' : 'Are you sure you want to archive the selected candidates?' }}');" 
-                      class="hidden">
+                      class="hidden flex items-center gap-2">
                     @csrf
-                    <button type="submit" 
-                       class="inline-flex items-center px-4 py-2 {{ $showArchived ? 'bg-red-500 border-red-500 hover:bg-red-600' : 'bg-amber-500 border-amber-500 hover:bg-amber-600' }} text-white border rounded-md text-xs font-semibold uppercase tracking-widest transition-all duration-300 shadow-sm">
-                        {{ $showArchived ? __('Delete Selected') : __('Archive Selected') }} (<span id="selected-count">0</span>)
-                    </button>
+                    @if($showArchived)
+                        <button type="submit" 
+                           formaction="{{ route('recruitment.bulkUnarchive') }}"
+                           onclick="return confirm('Are you sure you want to restore the selected candidates from the archive?');" 
+                           class="inline-flex items-center px-4 py-2 bg-emerald-600 border border-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-semibold uppercase tracking-widest transition-all duration-300 shadow-sm">
+                            <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+                            </svg>
+                            {{ __('Revert Selected') }} (<span class="selected-count">0</span>)
+                        </button>
+                        <button type="submit" 
+                           formaction="{{ route('recruitment.bulkDestroy') }}"
+                           onclick="return confirm('Are you sure you want to PERMANENTLY DELETE the selected candidates? This action cannot be undone.');" 
+                           class="inline-flex items-center px-4 py-2 bg-red-500 border border-red-500 hover:bg-red-600 text-white rounded-md text-xs font-semibold uppercase tracking-widest transition-all duration-300 shadow-sm">
+                            <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            {{ __('Delete Selected') }} (<span class="selected-count">0</span>)
+                        </button>
+                    @else
+                        <button type="submit" 
+                           formaction="{{ route('recruitment.bulkArchive') }}"
+                           onclick="return confirm('Are you sure you want to archive the selected candidates?');" 
+                           class="inline-flex items-center px-4 py-2 bg-amber-500 border border-amber-500 hover:bg-amber-600 text-white rounded-md text-xs font-semibold uppercase tracking-widest transition-all duration-300 shadow-sm">
+                            <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                            </svg>
+                            {{ __('Archive Selected') }} (<span class="selected-count">0</span>)
+                        </button>
+                    @endif
                     <div id="bulk-delete-inputs"></div>
                 </form>
                 @endif
@@ -234,6 +259,9 @@
                                 @endif
                                 <th class="pb-3 text-center w-[4%]">CV</th>
                                 <th class="pb-3 text-center w-[4%]">PTF</th>
+                                @if(auth()->user()->isAdmin() || auth()->user()->isHR())
+                                    <th class="pb-3 text-center w-[4%]">{{ $showArchived ? 'Rst' : 'Arc' }}</th>
+                                @endif
                             </tr>
                         </thead>
                         <tbody>
@@ -467,10 +495,41 @@
                                         </button>
                                     </td>
 
+                                    @if(auth()->user()->isAdmin() || auth()->user()->isHR())
+                                        {{-- Archive / Revert Column --}}
+                                        <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
+                                            @if($showArchived)
+                                                <form action="{{ route('recruitment.unarchiveCandidate', $candidate) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" 
+                                                            onclick="return confirm('Revert {{ addslashes($candidate->name) }} back to active recruitments?');" 
+                                                            class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-800/50 transition-all" 
+                                                            title="Revert / Restore candidate to active list">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <form action="{{ route('recruitment.archiveCandidate', $candidate) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" 
+                                                            onclick="return confirm('Archive {{ addslashes($candidate->name) }}?');" 
+                                                            class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all" 
+                                                            title="Archive candidate">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </td>
+                                    @endif
+
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ (auth()->user()->isAdmin() || auth()->user()->isHR()) ? 15 : 11 }}" class="py-12 text-center text-xs font-bold text-slate-400 uppercase tracking-widest italic">
+                                    <td colspan="{{ (auth()->user()->isAdmin() || auth()->user()->isHR()) ? 16 : 11 }}" class="py-12 text-center text-xs font-bold text-slate-400 uppercase tracking-widest italic">
                                         No candidates found for this designation.
                                     </td>
                                 </tr>
@@ -886,6 +945,7 @@
             const selected = Array.from(checkboxes).filter(cb => cb.checked);
             const count = selected.length;
             
+            document.querySelectorAll('.selected-count').forEach(span => span.textContent = count);
             if (selectedCountSpan) selectedCountSpan.textContent = count;
             
             if (count > 0 && bulkDeleteForm) {
