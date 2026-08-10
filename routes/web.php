@@ -8,6 +8,10 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+Route::get('/maintenance', function () {
+    return view('maintenance');
+})->name('maintenance');
+
 Route::get('/dashboard', function () {
     $googleService = new \App\Services\GoogleCalendarService();
     $isCalendarConnected = $googleService->isConnected();
@@ -15,6 +19,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::post('/system/maintenance/toggle', [\App\Http\Controllers\MaintenanceController::class, 'toggle'])->name('maintenance.toggle');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

@@ -49,6 +49,16 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (\App\Services\MaintenanceService::isEnabled()) {
+            $user = Auth::user();
+            if (!$user || !$user->isSuperAdmin()) {
+                Auth::logout();
+                throw ValidationException::withMessages([
+                    'email' => 'The system is currently undergoing maintenance. Only Super Admins can log in at this time.',
+                ]);
+            }
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
