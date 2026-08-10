@@ -152,7 +152,7 @@ class CandidateWebhookController extends Controller
                 'designation' => $designation ? $designation->name : $postName,
                 'designation_id' => $designation ? $designation->id : null,
                 'department_id' => $department ? $department->id : null,
-                'cv_path' => $cvPath,
+                'cv_path' => $cvPath ?? '',
                 'hod_comment' => $message,
                 'stage' => 'default',
                 'status' => 'pending',
