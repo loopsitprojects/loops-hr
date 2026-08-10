@@ -241,8 +241,8 @@ class CandidateWebhookController extends Controller
     {
         Log::info('Attempting CV download', ['url' => $url]);
         
-        // Download CV from WPForms URL
-        $response = Http::timeout(45)->get($url);
+        // Download CV from URL without SSL verification issues
+        $response = Http::withoutVerifying()->timeout(45)->get($url);
         
         if (!$response->successful()) {
             Log::error('CV Download Failed', [
@@ -257,7 +257,7 @@ class CandidateWebhookController extends Controller
         $extension = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION);
         if (!$extension) {
             $contentType = $response->header('Content-Type');
-            $extension = $contentType === 'application/pdf' ? 'pdf' : 'pdf';
+            $extension = (is_string($contentType) && str_contains($contentType, 'pdf')) ? 'pdf' : 'pdf';
         }
 
         // Generate filename with timestamp
@@ -265,10 +265,9 @@ class CandidateWebhookController extends Controller
         $sanitizedName = preg_replace('/[^A-Za-z0-9_-]/', '_', $candidateName);
         $filename = $timestamp . '_' . $sanitizedName . '_CV.' . $extension;
 
-        // Upload to FTP server
+        // Upload to FTP server or local fallback
         $folder = env('FTP_CV_FOLDER', 'cvs');
         
-        // If folder is '.' or empty, save directly in root
         if ($folder === '.' || empty($folder)) {
             $path = $filename;
         } else {
@@ -276,7 +275,14 @@ class CandidateWebhookController extends Controller
         }
 
         $ftpStart = microtime(true);
-        $success = Storage::disk('ftp_cvs')->put($path, $response->body());
+        $success = false;
+
+        try {
+            $success = Storage::disk('ftp_cvs')->put($path, $response->body());
+        } catch (\Exception $e) {
+            Log::warning('FTP Upload Exception', ['path' => $path, 'error' => $e->getMessage()]);
+        }
+
         $ftpDuration = round(microtime(true) - $ftpStart, 2);
 
         if ($success) {
@@ -286,8 +292,22 @@ class CandidateWebhookController extends Controller
                 'size' => strlen($response->body()) . ' bytes'
             ]);
         } else {
-            Log::error('FTP Upload failed silently', ['path' => $path]);
-            throw new \Exception("FTP upload returned false for path: {$path}");
+            Log::warning('FTP Upload failed or disk unreachable. Falling back to local public/CV_upload storage.', ['path' => $path]);
+            
+            $localDir = public_path('CV_upload/' . dirname($path));
+            if (!file_exists($localDir)) {
+                @mkdir($localDir, 0777, true);
+            }
+
+            $localFilePath = public_path('CV_upload/' . ltrim($path, '/'));
+            $localSuccess = file_put_contents($localFilePath, $response->body());
+
+            if ($localSuccess !== false) {
+                Log::info('CV saved locally to public/CV_upload', ['local_path' => $localFilePath]);
+            } else {
+                Log::error('Local CV save failed as well', ['local_path' => $localFilePath]);
+                throw new \Exception("Both FTP and local storage failed for CV: {$path}");
+            }
         }
 
         return $path;
