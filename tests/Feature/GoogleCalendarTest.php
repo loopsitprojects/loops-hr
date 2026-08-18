@@ -5,8 +5,12 @@ namespace Tests\Feature;
 use App\Models\User;
 use Tests\TestCase;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
 class GoogleCalendarTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_google_calendar_status_endpoint()
     {
         $user = User::factory()->create();

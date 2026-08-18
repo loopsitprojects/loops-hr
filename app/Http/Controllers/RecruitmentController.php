@@ -10,6 +10,7 @@ use App\Models\Designation;
 use App\Models\Test;
 use App\Models\CandidateAssessment;
 use App\Models\CandidateFeedback;
+use App\Models\CandidateRating;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -473,6 +474,21 @@ class RecruitmentController extends Controller
             $validStages = ['default', 'shortlisted', 'test_sent', 'test_received', '1st_interview', '2nd_interview', 'offer_sent', 'offer_accepted', 'joined', 'rejected'];
             if (!in_array($value, $validStages)) {
                 return response()->json(['error' => 'Invalid stage value'], 422);
+            }
+
+            $mandatoryRatingStages = ['2nd_interview', 'offer_sent', 'offer_accepted', 'joined', 'rejected'];
+            if (in_array($value, $mandatoryRatingStages) && !$candidate->hasRating()) {
+                $stageLabels = [
+                    '2nd_interview' => '2nd Interview',
+                    'offer_sent' => 'Offer Sent',
+                    'offer_accepted' => 'Offer Accepted',
+                    'joined' => 'Joined',
+                    'rejected' => 'Rejected',
+                ];
+                $targetLabel = $stageLabels[$value] ?? str_replace('_', ' ', $value);
+                return response()->json([
+                    'error' => "A candidate rating is required before changing stage to {$targetLabel}."
+                ], 422);
             }
 
             // Time-to-Hire Logic
@@ -1010,6 +1026,10 @@ class RecruitmentController extends Controller
             return response()->json(['error' => 'Unauthorized access.'], 403);
         }
 
+        if (!$candidate->hasRating()) {
+            return response()->json(['error' => 'A candidate rating is required before setting stage to Rejected.'], 422);
+        }
+
         // Send Email
         $message = $request->input('rejection_message');
         Mail::to($candidate->email)
@@ -1270,6 +1290,213 @@ class RecruitmentController extends Controller
          return response()->json([
              'success' => true,
              'message' => 'Feedback deleted successfully.'
+         ]);
+     }
+
+     public function getCandidateRatings(Candidate $candidate)
+     {
+         $candidate->load(['interviews.interviewers', 'interviews.interviewer']);
+         if ($candidate->department_id) {
+             $candidate->load('department');
+         }
+
+         $myRating = CandidateRating::where('candidate_id', $candidate->id)
+             ->where('user_id', auth()->id())
+             ->first();
+
+         $existingRatings = CandidateRating::where('candidate_id', $candidate->id)
+             ->with('user')
+             ->orderBy('created_at', 'desc')
+             ->get();
+
+         $ratedUserIds = $existingRatings->pluck('user_id')->toArray();
+
+         // Format ratings so far
+         $ratingsSoFar = [];
+         foreach ($existingRatings as $r) {
+             $userName = $r->user ? $r->user->name : 'Unknown';
+             $nameParts = explode(' ', trim($userName));
+             $initials = strtoupper(substr($nameParts[0], 0, 1) . (isset($nameParts[1]) ? substr($nameParts[1], 0, 1) : ''));
+
+             $ratingsSoFar[] = [
+                 'id' => $r->id,
+                 'user_id' => $r->user_id,
+                 'user_name' => $userName,
+                 'initials' => $initials ?: 'U',
+                 'overall_score' => (float)$r->overall_score,
+                 'recommendation' => $r->recommendation,
+                 'recommendation_label' => strtoupper(str_replace('_', ' ', $r->recommendation)),
+                 'area_ratings' => $r->area_ratings ?? [],
+                 'notes' => $r->notes,
+                 'is_me' => $r->user_id === auth()->id(),
+                 'status' => 'COMPLETED',
+                 'rated_at' => $r->updated_at ? $r->updated_at->format('M d, Y') : null,
+                 'is_edited' => $r->created_at && $r->updated_at && $r->updated_at->ne($r->created_at),
+             ];
+         }
+
+         // Collect pending interviewers from interviews
+         $allInterviewers = collect();
+         foreach ($candidate->interviews as $interview) {
+             if ($interview->interviewer) {
+                 $allInterviewers->push($interview->interviewer);
+             }
+             foreach ($interview->interviewers as $interviewer) {
+                 $allInterviewers->push($interviewer);
+             }
+         }
+         $uniqueInterviewers = $allInterviewers->unique('id');
+
+         foreach ($uniqueInterviewers as $interviewer) {
+             if (!in_array($interviewer->id, $ratedUserIds)) {
+                 $nameParts = explode(' ', trim($interviewer->name));
+                 $initials = strtoupper(substr($nameParts[0], 0, 1) . (isset($nameParts[1]) ? substr($nameParts[1], 0, 1) : ''));
+
+                 $ratingsSoFar[] = [
+                     'id' => null,
+                     'user_id' => $interviewer->id,
+                     'user_name' => $interviewer->name,
+                     'initials' => $initials ?: 'U',
+                     'overall_score' => null,
+                     'recommendation' => 'pending',
+                     'recommendation_label' => 'PENDING',
+                     'area_ratings' => [],
+                     'notes' => null,
+                     'is_me' => $interviewer->id === auth()->id(),
+                     'status' => 'PENDING'
+                 ];
+             }
+         }
+
+         // Current stage label
+         $stageLabels = [
+             Candidate::STAGE_TEST => 'Test stage',
+             Candidate::STAGE_FIRST_INTERVIEW => '1st interview',
+             Candidate::STAGE_SECOND_INTERVIEW => '2nd interview',
+             Candidate::STAGE_OFFER_SENT => 'Offer sent',
+             Candidate::STAGE_OFFER_ACCEPTED => 'Offer accepted',
+             Candidate::STAGE_HIRED => 'Hired',
+             Candidate::STAGE_REJECTED => 'Rejected',
+         ];
+
+         $stageText = $stageLabels[$candidate->stage] ?? ucfirst(str_replace('_', ' ', $candidate->stage ?? '1st interview'));
+         
+         $designationTitle = '';
+         if (is_string($candidate->designation)) {
+             $designationTitle = $candidate->designation;
+         } elseif (is_object($candidate->designation)) {
+             $designationTitle = $candidate->designation->title ?? $candidate->designation->name ?? '';
+         }
+
+         $departmentName = '';
+         if (is_string($candidate->department)) {
+             $departmentName = $candidate->department;
+         } elseif (is_object($candidate->department)) {
+             $departmentName = $candidate->department->name ?? '';
+         }
+         
+         $subtitleMeta = array_filter([$designationTitle, $departmentName, $stageText]);
+         $subtitleStr = implode(' — ', array_slice($subtitleMeta, 0, 2));
+
+         return response()->json([
+             'success' => true,
+             'candidate' => [
+                 'id' => $candidate->id,
+                 'name' => $candidate->name,
+                 'designation' => $designationTitle,
+                 'department' => $departmentName,
+                 'stage' => $candidate->stage,
+                 'stage_label' => $stageText,
+                 'subtitle_str' => $subtitleStr,
+                 'aggregate_rating' => $candidate->rating
+             ],
+             'current_user' => [
+                 'id' => auth()->id(),
+                 'name' => auth()->user()?->name ?? 'User',
+                 'role' => auth()->user()?->role,
+                 'is_super_admin' => (bool)(auth()->user()?->is_super_admin || auth()->user()?->role === \App\Models\User::ROLE_SUPER_ADMIN)
+             ],
+             'my_rating' => $myRating,
+             'ratings_so_far' => $ratingsSoFar
+         ]);
+     }
+
+     public function storeCandidateRating(Request $request, Candidate $candidate)
+     {
+         $request->validate([
+             'overall_score' => 'required|numeric|min:1|max:5',
+             'recommendation' => 'required|string|in:strong_no,no,yes,strong_yes',
+             'area_ratings' => 'nullable|array',
+             'notes' => 'nullable|string|max:5000',
+             'rating_id' => 'nullable|integer|exists:candidate_ratings,id',
+         ]);
+
+         $user = auth()->user();
+         $targetUserId = $user->id;
+
+         if ($request->filled('rating_id')) {
+             $existingRating = CandidateRating::where('id', $request->rating_id)
+                 ->where('candidate_id', $candidate->id)
+                 ->first();
+
+             if ($existingRating) {
+                 if ($existingRating->user_id !== $user->id && !in_array($user->role, [User::ROLE_SUPER_ADMIN, User::ROLE_HR_ADMIN]) && !$user->is_super_admin) {
+                     return response()->json([
+                         'success' => false,
+                         'message' => 'Unauthorized to edit this user rating.'
+                     ], 403);
+                 }
+                 $targetUserId = $existingRating->user_id;
+             }
+         }
+
+         $rating = CandidateRating::updateOrCreate(
+             [
+                 'candidate_id' => $candidate->id,
+                 'user_id' => $targetUserId,
+             ],
+             [
+                 'overall_score' => $request->overall_score,
+                 'recommendation' => $request->recommendation,
+                 'area_ratings' => $request->area_ratings ?? [],
+                 'notes' => $request->notes,
+             ]
+         );
+
+         $aggregateRating = $candidate->updateAggregateRating();
+         $ratingsCount = $candidate->ratings()->count();
+
+         return response()->json([
+             'success' => true,
+             'message' => 'Rating saved successfully.',
+             'rating' => $rating,
+             'aggregate_rating' => $aggregateRating,
+             'ratings_count' => $ratingsCount
+         ]);
+     }
+
+     public function deleteCandidateRating(CandidateRating $rating)
+     {
+         $user = auth()->user();
+
+         if ($rating->user_id !== $user->id && !in_array($user->role, [User::ROLE_SUPER_ADMIN, User::ROLE_HR_ADMIN]) && !$user->is_super_admin) {
+             return response()->json([
+                 'success' => false,
+                 'message' => 'Unauthorized to delete this rating.'
+             ], 403);
+         }
+
+         $candidate = $rating->candidate;
+         $rating->delete();
+
+         $aggregateRating = $candidate ? $candidate->updateAggregateRating() : null;
+         $ratingsCount = $candidate ? $candidate->ratings()->count() : 0;
+
+         return response()->json([
+             'success' => true,
+             'message' => 'Rating deleted successfully.',
+             'aggregate_rating' => $aggregateRating,
+             'ratings_count' => $ratingsCount
          ]);
      }
 }

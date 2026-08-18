@@ -292,6 +292,10 @@
 
         // Handle select dropdowns
         document.querySelectorAll('select.editable-field').forEach(select => {
+            let previousValue = select.value;
+            select.addEventListener('focus', function() {
+                previousValue = this.value;
+            });
             select.addEventListener('change', function() {
                 const candidateId = this.dataset.candidateId;
                 const fieldName = this.dataset.field;
@@ -315,12 +319,16 @@
                 .then(response => response.json())
                 .then(data => {
                     this.style.opacity = '1';
-                    if (!data.success) {
+                    if (data.success) {
+                        previousValue = value;
+                    } else {
+                        this.value = previousValue;
                         alert('Error: ' + (data.error || 'Failed to update'));
                     }
                 })
                 .catch(error => {
                     this.style.opacity = '1';
+                    this.value = previousValue;
                     console.error('Error:', error);
                     alert('Failed to update. Please try again.');
                 });

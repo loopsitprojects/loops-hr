@@ -12,7 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE candidates MODIFY COLUMN stage ENUM('default', 'shortlisted', 'test_sent', 'test_received', '1st_interview', '2nd_interview', 'offer_sent', 'offer_accepted', 'joined', 'rejected') DEFAULT 'default'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE candidates MODIFY COLUMN stage ENUM('default', 'shortlisted', 'test_sent', 'test_received', '1st_interview', '2nd_interview', 'offer_sent', 'offer_accepted', 'joined', 'rejected') DEFAULT 'default'");
+        }
     }
 
     /**
@@ -20,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE candidates MODIFY COLUMN stage ENUM('default', 'test_sent', 'test_received', '1st_interview', '2nd_interview', 'offer_sent', 'offer_accepted', 'joined', 'rejected') DEFAULT 'default'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE candidates MODIFY COLUMN stage ENUM('default', 'test_sent', 'test_received', '1st_interview', '2nd_interview', 'offer_sent', 'offer_accepted', 'joined', 'rejected') DEFAULT 'default'");
+        }
     }
 };

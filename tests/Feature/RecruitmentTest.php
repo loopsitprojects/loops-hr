@@ -26,7 +26,7 @@ class RecruitmentTest extends TestCase
 
     public function test_candidate_creation_requires_validation()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
 
         $response = $this->actingAs($user)->post('/recruitment', []);
 
@@ -142,4 +142,55 @@ class RecruitmentTest extends TestCase
             'id' => $feedbackId
         ]);
     }
+
+    public function test_candidate_stage_change_requires_rating_for_advanced_stages()
+    {
+        $dept = Department::create(['name' => 'Engineering']);
+        $designation = Designation::create(['name' => 'Software Engineer', 'department_id' => $dept->id]);
+        $candidate = \App\Models\Candidate::create([
+            'name' => 'Jane Smith',
+            'email' => 'jane@example.com',
+            'designation_id' => $designation->id,
+            'department_id' => $dept->id,
+            'designation' => 'Software Engineer',
+            'status' => 'pending',
+            'stage' => 'default',
+            'cv_path' => 'cv.pdf',
+        ]);
+
+        $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+
+        // 1. Transition to 1st_interview should succeed without rating
+        $res1 = $this->actingAs($admin)->patch(route('recruitment.updateCandidate', $candidate), [
+            'field' => 'stage',
+            'value' => '1st_interview',
+        ]);
+        $res1->assertStatus(200);
+        $this->assertEquals('1st_interview', $candidate->fresh()->stage);
+
+        // 2. Transition to mandatory rating stages (2nd_interview, offer_sent, offer_accepted, joined, rejected) should fail (422) without rating
+        $mandatoryStages = ['2nd_interview', 'offer_sent', 'offer_accepted', 'joined', 'rejected'];
+        foreach ($mandatoryStages as $stage) {
+            $res = $this->actingAs($admin)->patch(route('recruitment.updateCandidate', $candidate), [
+                'field' => 'stage',
+                'value' => $stage,
+            ]);
+            $res->assertStatus(422);
+            $res->assertJsonStructure(['error']);
+        }
+
+        // 3. Rate candidate
+        $candidate->update(['rating' => 4.0]);
+
+        // 4. Now transition to mandatory rating stages should succeed
+        foreach ($mandatoryStages as $stage) {
+            $res = $this->actingAs($admin)->patch(route('recruitment.updateCandidate', $candidate), [
+                'field' => 'stage',
+                'value' => $stage,
+            ]);
+            $res->assertStatus(200);
+            $this->assertEquals($stage, $candidate->fresh()->stage);
+        }
+    }
 }
+

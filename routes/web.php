@@ -43,6 +43,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/recruitment/candidate/{candidate}/feedbacks', [\App\Http\Controllers\RecruitmentController::class, 'storeFeedback'])->name('recruitment.storeFeedback');
     Route::patch('/recruitment/feedbacks/{feedback}', [\App\Http\Controllers\RecruitmentController::class, 'updateFeedback'])->name('recruitment.updateFeedback');
     Route::delete('/recruitment/feedbacks/{feedback}', [\App\Http\Controllers\RecruitmentController::class, 'destroyFeedback'])->name('recruitment.destroyFeedback');
+    Route::get('/recruitment/candidate/{candidate}/ratings', [\App\Http\Controllers\RecruitmentController::class, 'getCandidateRatings'])->name('recruitment.getCandidateRatings');
+    Route::post('/recruitment/candidate/{candidate}/ratings', [\App\Http\Controllers\RecruitmentController::class, 'storeCandidateRating'])->name('recruitment.storeCandidateRating');
+    Route::delete('/recruitment/ratings/{rating}', [\App\Http\Controllers\RecruitmentController::class, 'deleteCandidateRating'])->name('recruitment.deleteCandidateRating');
     Route::post('/recruitment/candidate/{candidate}/archive', [\App\Http\Controllers\RecruitmentController::class, 'archiveCandidate'])->name('recruitment.archiveCandidate');
     Route::post('/recruitment/candidate/{candidate}/unarchive', [\App\Http\Controllers\RecruitmentController::class, 'unarchiveCandidate'])->name('recruitment.unarchiveCandidate');
     Route::post('/recruitment/candidates/bulk-archive', [\App\Http\Controllers\RecruitmentController::class, 'bulkArchive'])->name('recruitment.bulkArchive');

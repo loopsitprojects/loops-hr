@@ -36,6 +36,7 @@ class Candidate extends Model
     protected $casts = [
         'finalized_at' => 'datetime',
         'is_archived' => 'boolean',
+        'rating' => 'float',
     ];
 
     protected static function booted()
@@ -90,6 +91,26 @@ class Candidate extends Model
     {
         return $this->hasMany(CandidateFeedback::class)->with('user')->orderBy('created_at', 'desc');
     }
+
+    public function ratings()
+    {
+        return $this->hasMany(CandidateRating::class)->with('user')->orderBy('created_at', 'desc');
+    }
+
+    public function updateAggregateRating()
+    {
+        $avgScore = $this->ratings()->whereNotNull('overall_score')->avg('overall_score');
+        $this->update([
+            'rating' => $avgScore !== null ? round($avgScore, 1) : null
+        ]);
+        return $this->rating;
+    }
+
+    public function hasRating(): bool
+    {
+        return (!is_null($this->rating) && $this->rating > 0) || $this->ratings()->exists();
+    }
+
 
     public function getFirstNameAttribute()
     {

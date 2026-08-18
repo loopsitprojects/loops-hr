@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -12,7 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         if (DB::getDriverName() === 'mysql') {
-            DB::statement("ALTER TABLE candidates MODIFY COLUMN stage ENUM('test', '1st_interview', '2nd_interview', 'offer_sent', 'offer_accepted', 'joined', 'rejected') DEFAULT 'test'");
+            DB::statement('ALTER TABLE candidates MODIFY rating DECIMAL(3,1) NULL');
         }
     }
 
@@ -21,9 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Warning: This might cause data loss for 'rejected' candidates if rolled back
         if (DB::getDriverName() === 'mysql') {
-            DB::statement("ALTER TABLE candidates MODIFY COLUMN stage ENUM('test', '1st_interview', '2nd_interview', 'offer_sent', 'offer_accepted', 'joined') DEFAULT 'test'");
+            DB::statement('ALTER TABLE candidates MODIFY rating INT NULL');
         }
     }
 };

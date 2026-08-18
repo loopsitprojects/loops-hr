@@ -363,18 +363,26 @@
                                         </div>
                                     </td>
                                     <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
-                                        <div class="relative flex items-center justify-center">
-                                            <select data-candidate-id="{{ $candidate->id }}"
-                                                data-field="rating"
-                                                class="editable-field block w-full bg-transparent text-[10px] font-black text-brand-teal bg-brand-teal/5 rounded-lg py-1 px-2 cursor-pointer focus:outline-none transition-all text-center pr-4"
-                                                style="appearance: none !important; -webkit-appearance: none !important; background-color: rgba(20, 184, 166, 0.05) !important; border: none !important; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2314b8a6%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 4px center; background-size: 0.4rem auto;"
-                                                {{ (auth()->user()->isAdmin() || auth()->user()->isHR() || auth()->user()->isHOD() || auth()->user()->isManagers() || auth()->user()->isManager()) ? '' : 'disabled' }}>
-                                                <option value="0" {{ ($candidate->rating ?? 0) == 0 ? 'selected' : '' }}>—</option>
-                                                @for($i = 1; $i <= 5; $i++)
-                                                    <option value="{{ $i }}" {{ ($candidate->rating ?? 0) == $i ? 'selected' : '' }}>{{ $i }}</option>
-                                                @endfor
-                                            </select>
-                                            <span class="text-[8px] text-slate-400 font-bold ml-1">/5</span>
+                                        <div class="relative flex flex-col items-center justify-center gap-1">
+                                            <button type="button" 
+                                                onclick="openRateCandidateModal({{ $candidate->id }})"
+                                                class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-teal/10 hover:bg-brand-teal/20 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-brand-teal dark:text-emerald-400 font-extrabold text-xs transition-all border border-brand-teal/20 dark:border-emerald-500/30 group/rate shadow-sm active:scale-95"
+                                                title="Rate candidate">
+                                                <svg class="w-3.5 h-3.5 fill-current text-amber-400" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                                </svg>
+                                                <span class="candidate-rating-display-{{ $candidate->id }}">
+                                                    {{ $candidate->rating ? number_format($candidate->rating, 1) : 'Rate' }}
+                                                </span>
+                                            </button>
+                                            @php
+                                                $ratingsCount = $candidate->ratings->count();
+                                            @endphp
+                                            <span class="candidate-rating-count-{{ $candidate->id }} text-[10px] font-medium text-slate-400 dark:text-slate-500">
+                                                @if($ratingsCount > 0)
+                                                    {{ $ratingsCount }} {{ Str::plural('rating', $ratingsCount) }}
+                                                @endif
+                                            </span>
                                         </div>
                                     </td>
                                     <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center relative group/tooltip">
@@ -897,6 +905,10 @@
         }
 
         document.querySelectorAll('select.editable-field').forEach(select => {
+            let previousValue = select.value;
+            select.addEventListener('focus', function() {
+                previousValue = this.value;
+            });
             select.addEventListener('change', function() {
                 const candidateId = this.dataset.candidateId;
                 const fieldName = this.dataset.field;
@@ -917,6 +929,7 @@
                 .then(data => {
                     this.style.opacity = '1';
                     if (data.success) {
+                        previousValue = value;
                         if (data.pipeline_html) {
                             const pipelineCell = document.getElementById(`pipeline-cell-${candidateId}`);
                             if (pipelineCell) pipelineCell.innerHTML = data.pipeline_html;
@@ -924,11 +937,13 @@
                     } else {
                         const errorMsg = data.error || data.message || 'Failed to update';
                         alert('Error: ' + errorMsg);
+                        this.value = previousValue;
                         console.error('Update failed:', data);
                     }
                 })
                 .catch(error => {
                     this.style.opacity = '1';
+                    this.value = previousValue;
                     alert('Failed to update. Please try again.');
                 });
             });
@@ -1962,6 +1977,116 @@ We appreciate the opportunity to review your profile and wish you the very best 
             </div>
         </div>
     </div>
+    <!-- Rate Candidate Modal -->
+    <div id="rateCandidateModal" class="hidden fixed inset-0 overflow-y-auto" style="z-index: 9995 !important;" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Backdrop -->
+            <div class="fixed inset-0 backdrop-blur-md transition-opacity" style="background-color: rgba(2, 6, 23, 0.82) !important;" aria-hidden="true" onclick="closeRateCandidateModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            
+            <!-- Modal Card -->
+            <div class="inline-block align-bottom text-left overflow-hidden rounded-[2rem] shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full relative z-[99]" style="background-color: #0b0f19 !important; border: 1px solid #1e293b !important; color: #ffffff !important; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75) !important;">
+                
+                <!-- Header -->
+                <div class="px-8 py-6 flex justify-between items-start" style="background-color: #0e1424 !important; border-bottom: 1px solid #1e293b !important;">
+                    <div>
+                        <h3 class="text-xl font-black tracking-tight" style="color: #ffffff !important;">Rate candidate</h3>
+                        <p class="text-xs mt-1.5 font-medium leading-relaxed" id="rate-modal-subtitle" style="color: #94a3b8 !important;">
+                            Loading details...
+                        </p>
+                    </div>
+                    <button type="button" onclick="closeRateCandidateModal()" class="w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer" style="background-color: #1e293b !important; color: #94a3b8 !important;">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <!-- Body -->
+                <div class="p-8 space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar" style="background-color: #0b0f19 !important;">
+                    <input type="hidden" id="rate-candidate-id">
+
+                    <!-- RATE BY AREA -->
+                    <div>
+                        <h4 class="text-[11px] font-black uppercase tracking-wider mb-4" style="color: #64748b !important;">RATE BY AREA</h4>
+                        
+                        <div id="rating-areas-container" class="space-y-3.5">
+                            <!-- Area rows dynamically rendered here -->
+                        </div>
+                    </div>
+
+                    <!-- OVERALL SCORE BOX -->
+                    <div class="rounded-2xl p-5 flex items-center justify-between shadow-inner" style="background-color: #111726 !important; border: 1px solid #1e293b !important;">
+                        <div>
+                            <h5 class="text-sm font-bold" style="color: #ffffff !important;">Overall score</h5>
+                            <p class="text-[11px] mt-0.5" style="color: #64748b !important;">Auto-calculated from areas above</p>
+                        </div>
+                        <div class="px-5 py-2.5 rounded-2xl shadow-sm text-center min-w-[70px]" id="rate-overall-score-display" style="background-color: #022c22 !important; border: 1px solid #059669 !important; color: #34d399 !important; font-weight: 900 !important; font-size: 20px !important;">
+                            0.0
+                        </div>
+                    </div>
+
+                    <!-- RECOMMENDATION -->
+                    <div>
+                        <h4 class="text-[11px] font-black uppercase tracking-wider mb-3" style="color: #64748b !important;">RECOMMENDATION</h4>
+                        <div class="grid grid-cols-3 gap-2.5" id="recommendation-buttons-group">
+                            <button type="button" data-val="strong_no" onclick="selectRecommendation('strong_no')" class="rec-btn py-3 px-3 rounded-2xl text-xs font-bold transition-all text-center cursor-pointer" style="background-color: #111726 !important; border: 1px solid #1e293b !important; color: #cbd5e1 !important;">Strong no</button>
+                            <button type="button" data-val="no" onclick="selectRecommendation('no')" class="rec-btn py-3 px-3 rounded-2xl text-xs font-bold transition-all text-center cursor-pointer" style="background-color: #111726 !important; border: 1px solid #1e293b !important; color: #cbd5e1 !important;">No</button>
+                            <button type="button" data-val="yes" onclick="selectRecommendation('yes')" class="rec-btn py-3 px-3 rounded-2xl text-xs font-bold transition-all text-center cursor-pointer" style="background-color: #111726 !important; border: 1px solid #1e293b !important; color: #cbd5e1 !important;">Yes</button>
+                            <button type="button" data-val="strong_yes" onclick="selectRecommendation('strong_yes')" class="rec-btn col-span-3 py-3.5 px-4 rounded-2xl text-sm font-bold transition-all text-center cursor-pointer" style="background-color: #111726 !important; border: 1px solid #1e293b !important; color: #cbd5e1 !important;">Strong yes</button>
+                        </div>
+                    </div>
+
+                    <!-- NOTES -->
+                    <div>
+                        <h4 class="text-[11px] font-black uppercase tracking-wider mb-2" style="color: #64748b !important;">NOTES</h4>
+                        <textarea id="rate-notes-input" rows="3" class="w-full rounded-2xl px-4 py-3 text-sm transition-all resize-none focus:outline-none" style="background-color: #111726 !important; border: 1px solid #334155 !important; color: #f8fafc !important;" placeholder="Sharp headlines, strong sense of tone. Portfolio carried real client work..."></textarea>
+                    </div>
+
+                    <!-- INTERVIEWER RATINGS SO FAR -->
+                    <div>
+                        <h4 class="text-[11px] font-black uppercase tracking-wider mb-3" style="color: #64748b !important;">INTERVIEWER RATINGS SO FAR</h4>
+                        <div id="ratings-so-far-list" class="space-y-2.5">
+                            <!-- Loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="px-8 py-5 flex justify-end items-center gap-3" style="background-color: #0e1424 !important; border-top: 1px solid #1e293b !important;">
+                    <button type="button" onclick="closeRateCandidateModal()" class="font-bold text-xs transition-all cursor-pointer" style="background-color: #161f33 !important; border: 1px solid #334155 !important; color: #cbd5e1 !important; border-radius: 12px !important; padding: 12px 24px !important;">Cancel</button>
+                    <button type="button" onclick="switchToMyRatingEditMode()" id="back-to-my-rating-btn" class="hidden font-bold text-xs transition-all cursor-pointer" style="background-color: #1e293b !important; border: 1px solid #3b82f6 !important; color: #60a5fa !important; border-radius: 12px !important; padding: 12px 24px !important;">Back to my rating</button>
+                    <button type="button" onclick="submitCandidateRating()" id="submit-rating-btn" class="font-black text-xs uppercase tracking-wider transition-all shadow-lg active:scale-95 cursor-pointer" style="background-color: #10b981 !important; color: #022c22 !important; border: 1px solid #34d399 !important; border-radius: 12px !important; padding: 12px 28px !important; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4) !important;">Submit rating</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Rating Confirmation Modal -->
+    <div id="deleteRatingConfirmModal" class="fixed inset-0 flex items-center justify-center hidden" style="z-index: 99999999 !important; background-color: rgba(2, 6, 23, 0.85) !important; backdrop-filter: blur(8px) !important;">
+        <div class="relative overflow-hidden shadow-2xl transition-all" style="background-color: #0b0f19 !important; border: 1px solid #1e293b !important; border-radius: 24px !important; max-width: 400px !important; width: 90% !important; margin: auto !important; z-index: 100000000 !important; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9) !important; padding: 32px 28px !important;">
+            <div class="text-center">
+                <!-- Danger Icon -->
+                <div class="mx-auto w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style="background-color: rgba(225, 29, 72, 0.12) !important; border: 1px solid rgba(244, 63, 94, 0.3) !important;">
+                    <svg class="w-7 h-7" style="color: #f43f5e !important;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </div>
+                <h3 class="font-black tracking-tight mb-2" style="color: #f8fafc !important; font-size: 18px !important;">Delete Rating?</h3>
+                <p class="font-medium leading-relaxed mb-6" style="color: #94a3b8 !important; font-size: 13px !important;">
+                    Are you sure you want to delete this candidate rating? This action cannot be undone.
+                </p>
+
+                <!-- Footer Actions -->
+                <div class="flex items-center justify-center gap-3">
+                    <button type="button" onclick="closeDeleteRatingModal()" class="font-bold text-xs transition-all cursor-pointer" style="background-color: #161f33 !important; border: 1px solid #334155 !important; color: #cbd5e1 !important; border-radius: 12px !important; padding: 10px 20px !important;">
+                        Cancel
+                    </button>
+                    <button type="button" onclick="confirmDeleteRatingAction()" id="confirm-delete-rating-btn" class="font-black text-xs uppercase tracking-wider transition-all shadow-lg active:scale-95 cursor-pointer" style="background-color: #e11d48 !important; color: #ffffff !important; border: 1px solid #f43f5e !important; border-radius: 12px !important; padding: 10px 24px !important; box-shadow: 0 4px 14px rgba(225, 29, 72, 0.4) !important;">
+                        DELETE RATING
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     @endpush
 
     <script>
@@ -2491,5 +2616,633 @@ We appreciate the opportunity to review your profile and wish you the very best 
 
 
 
+        /* Candidate Rating Modal Functions */
+        let currentRatingCandidateId = null;
+        let currentSelectedRecommendation = null;
+        let currentRatingAreas = [];
+        let currentCandidateData = null;
+        let currentUserData = null;
+        let currentMyRatingData = null;
+        let currentRatingsSoFarList = [];
+        let isRatingReadOnly = false;
+        let activeViewingUserId = null;
+        let activeEditingRatingId = null;
+        let ratingObjectsMap = {};
+
+        const DEFAULT_RATING_AREAS = ['Communication', 'Creativity', 'Experience', 'Culture fit'];
+
+        function safeEscape(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        async function openRateCandidateModal(candidateId) {
+            currentRatingCandidateId = candidateId;
+            const idInput = document.getElementById('rate-candidate-id');
+            if (idInput) idInput.value = candidateId;
+
+            // Reset fields & state
+            currentSelectedRecommendation = null;
+            currentRatingAreas = [];
+            currentCandidateData = null;
+            currentUserData = null;
+            currentMyRatingData = null;
+            currentRatingsSoFarList = [];
+            isRatingReadOnly = false;
+            activeViewingUserId = null;
+            activeEditingRatingId = null;
+            ratingObjectsMap = {};
+
+            const notesInput = document.getElementById('rate-notes-input');
+            if (notesInput) {
+                notesInput.value = '';
+                notesInput.readOnly = false;
+            }
+            
+            const scoreDisplay = document.getElementById('rate-overall-score-display');
+            if (scoreDisplay) scoreDisplay.innerText = '0.0';
+            
+            const subtitleEl = document.getElementById('rate-modal-subtitle');
+            if (subtitleEl) subtitleEl.innerText = 'Loading candidate details...';
+            
+            // Footer buttons state
+            const submitBtn = document.getElementById('submit-rating-btn');
+            const backBtn = document.getElementById('back-to-my-rating-btn');
+            if (submitBtn) {
+                submitBtn.classList.remove('hidden');
+                submitBtn.innerText = 'Submit rating';
+            }
+            if (backBtn) backBtn.classList.add('hidden');
+
+            const modalEl = document.getElementById('rateCandidateModal');
+            if (modalEl) modalEl.classList.remove('hidden');
+
+            try {
+                const response = await fetch(`/recruitment/candidate/${candidateId}/ratings`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    currentCandidateData = data.candidate;
+                    currentUserData = data.current_user;
+                    currentMyRatingData = data.my_rating;
+                    currentRatingsSoFarList = data.ratings_so_far || [];
+
+                    switchToMyRatingEditMode();
+                } else {
+                    alert('Failed to load candidate rating details.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred while opening the rating modal.');
+            }
+        }
+
+        function switchToMyRatingEditMode() {
+            isRatingReadOnly = false;
+            activeViewingUserId = currentUserData ? currentUserData.id : null;
+            activeEditingRatingId = currentMyRatingData ? currentMyRatingData.id : null;
+
+            const c = currentCandidateData;
+            const user = currentUserData;
+
+            const subtitleEl = document.getElementById('rate-modal-subtitle');
+            if (subtitleEl && c && user) {
+                subtitleEl.innerHTML = `
+                    <span class="font-semibold text-slate-200">${safeEscape(c.name)}</span> · 
+                    <span>${safeEscape(c.subtitle_str || c.designation || '')}</span> · 
+                    <span>${safeEscape(c.stage_label)}</span> · 
+                    <span class="text-emerald-400 font-medium">you're rating as ${safeEscape(user.name)}</span>
+                `;
+            }
+
+            const notesInput = document.getElementById('rate-notes-input');
+            if (notesInput) notesInput.readOnly = false;
+            
+            const submitBtn = document.getElementById('submit-rating-btn');
+            const backBtn = document.getElementById('back-to-my-rating-btn');
+            if (submitBtn) {
+                submitBtn.classList.remove('hidden');
+                submitBtn.innerText = 'Submit rating';
+            }
+            if (backBtn) backBtn.classList.add('hidden');
+
+            if (currentMyRatingData) {
+                const myR = currentMyRatingData;
+                if (myR.area_ratings && Array.isArray(myR.area_ratings) && myR.area_ratings.length > 0) {
+                    currentRatingAreas = JSON.parse(JSON.stringify(myR.area_ratings));
+                } else {
+                    currentRatingAreas = DEFAULT_RATING_AREAS.map(a => ({ area: a, score: 0 }));
+                }
+
+                currentSelectedRecommendation = myR.recommendation || null;
+                if (notesInput) notesInput.value = myR.notes || '';
+            } else {
+                currentRatingAreas = DEFAULT_RATING_AREAS.map(a => ({ area: a, score: 0 }));
+                currentSelectedRecommendation = null;
+                if (notesInput) notesInput.value = '';
+            }
+
+            renderRatingAreas();
+            selectRecommendation(currentSelectedRecommendation);
+            calculateOverallScore();
+            renderRatingsSoFar(currentRatingsSoFarList);
+        }
+
+        function editRatingItemById(event, ratingId) {
+            if (event) event.stopPropagation();
+
+            const r = ratingObjectsMap[ratingId];
+            if (!r) return;
+
+            isRatingReadOnly = false;
+            activeViewingUserId = r.user_id;
+            activeEditingRatingId = r.id;
+
+            const c = currentCandidateData;
+            const subtitleEl = document.getElementById('rate-modal-subtitle');
+            if (subtitleEl && c) {
+                const isMe = currentUserData && r.user_id === currentUserData.id;
+                const authorTag = isMe 
+                    ? `you're rating as ${safeEscape(currentUserData.name)}` 
+                    : `Editing rating for <strong style="color: #38bdf8 !important;">${safeEscape(r.user_name)}</strong> (Admin mode)`;
+
+                subtitleEl.innerHTML = `
+                    <span class="font-semibold text-slate-200">${safeEscape(c.name)}</span> · 
+                    <span>${safeEscape(c.subtitle_str || c.designation || '')}</span> · 
+                    <span>${authorTag}</span>
+                `;
+            }
+
+            const notesInput = document.getElementById('rate-notes-input');
+            if (notesInput) {
+                notesInput.value = r.notes || '';
+                notesInput.readOnly = false;
+            }
+
+            const submitBtn = document.getElementById('submit-rating-btn');
+            const backBtn = document.getElementById('back-to-my-rating-btn');
+            if (submitBtn) {
+                submitBtn.classList.remove('hidden');
+                submitBtn.innerText = (currentUserData && r.user_id === currentUserData.id) ? 'Submit rating' : 'Update rating';
+            }
+            if (backBtn) {
+                if (currentUserData && r.user_id === currentUserData.id) {
+                    backBtn.classList.add('hidden');
+                } else {
+                    backBtn.classList.remove('hidden');
+                }
+            }
+
+            if (r.area_ratings && Array.isArray(r.area_ratings) && r.area_ratings.length > 0) {
+                currentRatingAreas = JSON.parse(JSON.stringify(r.area_ratings));
+            } else {
+                currentRatingAreas = DEFAULT_RATING_AREAS.map(a => ({ area: a, score: 0 }));
+            }
+
+            currentSelectedRecommendation = r.recommendation || null;
+
+            renderRatingAreas();
+            selectRecommendation(currentSelectedRecommendation);
+            
+            if (r.overall_score !== null && r.overall_score !== undefined) {
+                const scoreDisplay = document.getElementById('rate-overall-score-display');
+                if (scoreDisplay) scoreDisplay.innerText = parseFloat(r.overall_score).toFixed(1);
+            } else {
+                calculateOverallScore();
+            }
+
+            renderRatingsSoFar(currentRatingsSoFarList);
+        }
+
+        function viewRatingReadOnly(r) {
+            isRatingReadOnly = true;
+            activeViewingUserId = r.user_id;
+
+            const c = currentCandidateData;
+
+            const subtitleEl = document.getElementById('rate-modal-subtitle');
+            if (subtitleEl) {
+                subtitleEl.innerHTML = `
+                    <span class="font-semibold text-slate-200">${safeEscape(c ? c.name : '')}</span> · 
+                    <span class="text-amber-400 font-medium">Viewing rating by ${safeEscape(r.user_name)} (Read only)</span>
+                `;
+            }
+
+            const notesInput = document.getElementById('rate-notes-input');
+            if (notesInput) {
+                notesInput.value = r.notes || '';
+                notesInput.readOnly = true;
+            }
+
+            // Footer buttons
+            const submitBtn = document.getElementById('submit-rating-btn');
+            const backBtn = document.getElementById('back-to-my-rating-btn');
+            if (submitBtn) submitBtn.classList.add('hidden');
+            if (backBtn) backBtn.classList.remove('hidden');
+
+            if (r.area_ratings && Array.isArray(r.area_ratings) && r.area_ratings.length > 0) {
+                currentRatingAreas = JSON.parse(JSON.stringify(r.area_ratings));
+            } else {
+                currentRatingAreas = DEFAULT_RATING_AREAS.map(a => ({ area: a, score: 0 }));
+            }
+
+            currentSelectedRecommendation = r.recommendation || null;
+
+            renderRatingAreas();
+            selectRecommendation(currentSelectedRecommendation);
+            
+            const scoreDisplay = document.getElementById('rate-overall-score-display');
+            if (r.overall_score !== null && r.overall_score !== undefined) {
+                if (scoreDisplay) scoreDisplay.innerText = parseFloat(r.overall_score).toFixed(1);
+            } else {
+                calculateOverallScore();
+            }
+
+            renderRatingsSoFar(currentRatingsSoFarList);
+        }
+
+        function closeRateCandidateModal() {
+            document.getElementById('rateCandidateModal').classList.add('hidden');
+        }
+
+        function renderRatingAreas() {
+            const container = document.getElementById('rating-areas-container');
+            container.innerHTML = '';
+
+            currentRatingAreas.forEach((item, index) => {
+                const isCustom = !DEFAULT_RATING_AREAS.includes(item.area);
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between gap-4';
+                row.style.cssText = 'background-color: #111726 !important; border: 1px solid #1e293b !important; border-radius: 14px !important; width: 100% !important; box-sizing: border-box !important; padding: 12px 18px !important; display: flex !important; align-items: center !important; justify-content: space-between !important;';
+
+                let labelHtml = '';
+                if (isCustom) {
+                    labelHtml = `
+                        <div class="flex items-center gap-2 flex-1" style="min-width: 0; margin-left: 4px !important;">
+                            <input type="text" value="${safeEscape(item.area)}" 
+                                   onchange="updateAreaName(${index}, this.value)" 
+                                   ${isRatingReadOnly ? 'readonly' : ''}
+                                   class="px-3 py-1.5 text-xs font-semibold w-full focus:outline-none" 
+                                   style="background-color: #161f33 !important; border: 1px solid #334155 !important; color: #f1f5f9 !important; border-radius: 10px !important;" 
+                                   placeholder="Area name..." />
+                            ${!isRatingReadOnly ? `
+                            <button type="button" onclick="removeRatingArea(${index})" class="p-1 cursor-pointer" style="color: #64748b !important; flex-shrink: 0;">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>` : ''}
+                        </div>
+                    `;
+                } else {
+                    labelHtml = `<span class="text-xs font-bold tracking-wide" style="color: #f1f5f9 !important; font-size: 14px !important; margin-left: 6px !important;">${safeEscape(item.area)}</span>`;
+                }
+
+                let buttonsHtml = '<div class="flex items-center" style="gap: 8px !important; flex-shrink: 0 !important;">';
+                for (let score = 1; score <= 5; score++) {
+                    const isSelected = item.score === score;
+                    let bgStyle = isSelected
+                        ? 'background-color: #10b981 !important; color: #022c22 !important; border: 1px solid #34d399 !important; font-weight: 900 !important; box-shadow: 0 0 12px rgba(16, 185, 129, 0.45) !important;'
+                        : 'background-color: #161f33 !important; color: #cbd5e1 !important; border: 1px solid #334155 !important; font-weight: 700 !important;';
+                    
+                    if (isRatingReadOnly) {
+                        bgStyle += ' pointer-events: none !important; opacity: 0.85 !important;';
+                    }
+
+                    const fullStyle = `width: 36px !important; height: 36px !important; min-width: 36px !important; min-height: 36px !important; border-radius: 10px !important; flex-shrink: 0 !important; padding: 0 !important; margin: 0 !important; ${bgStyle}`;
+                    const onclickAttr = isRatingReadOnly ? 'disabled' : `onclick="setAreaScore(${index}, ${score})"`;
+
+                    buttonsHtml += `
+                        <button type="button" ${onclickAttr}
+                                class="flex items-center justify-center text-xs transition-all ${isRatingReadOnly ? '' : 'cursor-pointer'}" 
+                                style="${fullStyle}">
+                            ${score}
+                        </button>
+                    `;
+                }
+                buttonsHtml += '</div>';
+
+                row.innerHTML = `${labelHtml}${buttonsHtml}`;
+                container.appendChild(row);
+            });
+        }
+
+        function setAreaScore(index, score) {
+            if (isRatingReadOnly) return;
+            if (currentRatingAreas[index]) {
+                currentRatingAreas[index].score = score;
+                renderRatingAreas();
+                calculateOverallScore();
+            }
+        }
+
+        function updateAreaName(index, name) {
+            if (isRatingReadOnly) return;
+            if (currentRatingAreas[index]) {
+                currentRatingAreas[index].area = name.trim() || 'Custom area';
+            }
+        }
+
+        function removeRatingArea(index) {
+            if (isRatingReadOnly) return;
+            currentRatingAreas.splice(index, 1);
+            renderRatingAreas();
+            calculateOverallScore();
+        }
+
+        function addNewRatingArea() {
+            if (isRatingReadOnly) return;
+            currentRatingAreas.push({ area: 'New area', score: 0 });
+            renderRatingAreas();
+            calculateOverallScore();
+        }
+
+        function calculateOverallScore() {
+            const ratedItems = currentRatingAreas.filter(a => a.score > 0);
+            if (ratedItems.length === 0) {
+                document.getElementById('rate-overall-score-display').innerText = '0.0';
+                return 0.0;
+            }
+
+            const total = ratedItems.reduce((sum, item) => sum + item.score, 0);
+            const avg = (total / ratedItems.length).toFixed(1);
+            document.getElementById('rate-overall-score-display').innerText = avg;
+            return parseFloat(avg);
+        }
+
+        function selectRecommendation(val) {
+            if (!isRatingReadOnly) {
+                currentSelectedRecommendation = val;
+            }
+            document.querySelectorAll('#recommendation-buttons-group .rec-btn').forEach(btn => {
+                const itemVal = btn.getAttribute('data-val');
+                const isStrongYes = itemVal === 'strong_yes';
+                const gridSpan = isStrongYes ? 'grid-column: span 3 / span 3 !important; width: 100% !important;' : '';
+                const baseStyle = `height: ${isStrongYes ? '48px' : '44px'} !important; border-radius: 16px !important; display: flex !important; align-items: center !important; justify-content: center !important; font-size: ${isStrongYes ? '14px' : '13px'} !important; transition: all 0.2s !important; ${gridSpan}`;
+                
+                if (isRatingReadOnly) {
+                    btn.disabled = true;
+                    btn.style.pointerEvents = 'none';
+                } else {
+                    btn.disabled = false;
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.cursor = 'pointer';
+                }
+
+                if (itemVal === val) {
+                    if (val === 'strong_no') {
+                        btn.style.cssText = baseStyle + 'background-color: #4c0519 !important; border: 2px solid #f43f5e !important; color: #fda4af !important; font-weight: 900 !important; box-shadow: 0 0 16px rgba(244, 63, 94, 0.4) !important;' + (isRatingReadOnly ? 'pointer-events: none;' : '');
+                    } else if (val === 'no') {
+                        btn.style.cssText = baseStyle + 'background-color: #431407 !important; border: 2px solid #fb923c !important; color: #fdba74 !important; font-weight: 900 !important; box-shadow: 0 0 16px rgba(251, 146, 60, 0.4) !important;' + (isRatingReadOnly ? 'pointer-events: none;' : '');
+                    } else if (val === 'yes') {
+                        btn.style.cssText = baseStyle + 'background-color: #042f2e !important; border: 2px solid #2dd4bf !important; color: #5eead4 !important; font-weight: 900 !important; box-shadow: 0 0 16px rgba(45, 212, 191, 0.4) !important;' + (isRatingReadOnly ? 'pointer-events: none;' : '');
+                    } else if (val === 'strong_yes') {
+                        btn.style.cssText = baseStyle + 'background-color: #022c22 !important; border: 2px solid #22c55e !important; color: #4ade80 !important; font-weight: 900 !important; box-shadow: 0 0 16px rgba(34, 197, 94, 0.4) !important;' + (isRatingReadOnly ? 'pointer-events: none;' : '');
+                    }
+                } else {
+                    btn.style.cssText = baseStyle + 'background-color: #111726 !important; border: 1px solid #1e293b !important; color: #cbd5e1 !important; font-weight: 700 !important;' + (isRatingReadOnly ? 'pointer-events: none; opacity: 0.6;' : '');
+                }
+            });
+        }
+
+        function renderRatingsSoFar(ratingsList) {
+            const container = document.getElementById('ratings-so-far-list');
+            container.innerHTML = '';
+            ratingObjectsMap = {};
+
+            if (!ratingsList || ratingsList.length === 0) {
+                container.innerHTML = '<p class="text-xs italic py-2" style="color: #64748b !important;">No ratings submitted yet.</p>';
+                return;
+            }
+
+            const canManageAll = currentUserData && (currentUserData.is_super_admin || currentUserData.role === 'Super Admin' || currentUserData.role === 'HR Admin');
+
+            ratingsList.forEach(r => {
+                if (r.id) {
+                    ratingObjectsMap[r.id] = r;
+                }
+
+                const row = document.createElement('div');
+                const isSelectedRow = activeViewingUserId && activeViewingUserId === r.user_id;
+                const isCompleted = r.status === 'COMPLETED' || r.overall_score !== null;
+                const canEdit = r.id && (r.is_me || canManageAll);
+                const canDelete = r.id && (r.is_me || canManageAll);
+
+                row.className = 'flex items-center justify-between p-3.5 rounded-2xl transition-all';
+                row.style.cssText = isSelectedRow
+                    ? 'background-color: #162035 !important; border: 1.5px solid #38bdf8 !important; box-shadow: 0 0 12px rgba(56, 189, 248, 0.25) !important;'
+                    : 'background-color: #111726 !important; border: 1px solid #1e293b !important;';
+
+                if (isCompleted) {
+                    row.style.cursor = 'pointer';
+                    row.title = "Click to view this rating (Read only)";
+                    row.onclick = () => viewRatingReadOnly(r);
+                } else {
+                    row.title = "Rating pending";
+                }
+
+                let badgeStyle = '';
+                let recLabel = r.recommendation_label || 'PENDING';
+                
+                if (r.recommendation === 'strong_yes') {
+                    badgeStyle = 'background-color: rgba(6, 78, 59, 0.85) !important; color: #34d399 !important; border: 1px solid rgba(52, 211, 153, 0.4) !important;';
+                } else if (r.recommendation === 'yes') {
+                    badgeStyle = 'background-color: rgba(4, 78, 84, 0.85) !important; color: #2dd4bf !important; border: 1px solid rgba(45, 212, 191, 0.4) !important;';
+                } else if (r.recommendation === 'no') {
+                    badgeStyle = 'background-color: rgba(124, 45, 18, 0.85) !important; color: #fb923c !important; border: 1px solid rgba(251, 146, 60, 0.4) !important;';
+                } else if (r.recommendation === 'strong_no') {
+                    badgeStyle = 'background-color: rgba(136, 19, 55, 0.85) !important; color: #f43f5e !important; border: 1px solid rgba(244, 63, 94, 0.4) !important;';
+                } else {
+                    badgeStyle = 'background-color: #1e293b !important; color: #64748b !important; border: 1px solid #334155 !important;';
+                    recLabel = 'PENDING';
+                }
+
+                const scoreStr = r.overall_score !== null ? (r.overall_score % 1 === 0 ? r.overall_score.toFixed(0) : r.overall_score.toFixed(1)) : '—';
+                const scoreColor = r.overall_score !== null ? '#34d399' : '#64748b';
+
+                let actionBtnsHtml = '';
+                if (isCompleted && (canEdit || canDelete)) {
+                    actionBtnsHtml = `
+                        <div class="flex items-center gap-1" onclick="event.stopPropagation();">
+                            ${canEdit ? `
+                            <button type="button" onclick="editRatingItemById(event, ${r.id})" title="Edit rating" class="p-1.5 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-emerald-950/40 transition-all cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            </button>` : ''}
+                            ${canDelete ? `
+                            <button type="button" onclick="deleteRatingItem(event, ${r.id})" title="Delete rating" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 transition-all cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>` : ''}
+                        </div>
+                    `;
+                }
+
+                const dateStr = r.rated_at ? `<span class="text-[10px] font-medium" style="color: #64748b !important;">${r.is_edited ? 'Edited ' : ''}${safeEscape(r.rated_at)}</span>` : '';
+
+                row.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full font-extrabold text-xs flex items-center justify-center flex-shrink-0" style="background-color: #1e293b !important; border: 1px solid #334155 !important; color: #cbd5e1 !important;">
+                            ${safeEscape(r.initials)}
+                        </div>
+                        <div class="flex flex-col">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold" style="color: #f1f5f9 !important;">${safeEscape(r.user_name)}</span>
+                                ${r.is_me ? '<span class="text-[10px] text-emerald-400 font-extrabold px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/30">YOU</span>' : ''}
+                            </div>
+                            ${dateStr}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-xs font-black" style="color: ${scoreColor} !important;">${scoreStr}</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full" style="${badgeStyle}">${safeEscape(recLabel)}</span>
+                        ${actionBtnsHtml}
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        let pendingDeleteRatingId = null;
+
+        function deleteRatingItem(event, ratingId) {
+            if (event) event.stopPropagation();
+            pendingDeleteRatingId = ratingId;
+            const modal = document.getElementById('deleteRatingConfirmModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeDeleteRatingModal() {
+            pendingDeleteRatingId = null;
+            const modal = document.getElementById('deleteRatingConfirmModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function updateCandidateRowRatingDisplay(candidateId, aggregateRating, ratingsCount) {
+            const badgeEl = document.querySelector(`.candidate-rating-display-${candidateId}`);
+            if (badgeEl) {
+                badgeEl.innerText = (aggregateRating !== null && aggregateRating !== undefined) ? parseFloat(aggregateRating).toFixed(1) : 'Rate';
+            }
+            const countEl = document.querySelector(`.candidate-rating-count-${candidateId}`);
+            if (countEl) {
+                if (ratingsCount !== undefined && ratingsCount !== null) {
+                    const cnt = parseInt(ratingsCount, 10);
+                    countEl.innerText = cnt > 0 ? `${cnt} ${cnt === 1 ? 'rating' : 'ratings'}` : '';
+                }
+            }
+        }
+
+        async function confirmDeleteRatingAction() {
+            if (!pendingDeleteRatingId) return;
+            const ratingId = pendingDeleteRatingId;
+
+            const confirmBtn = document.getElementById('confirm-delete-rating-btn');
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.innerText = 'Deleting...';
+            }
+
+            try {
+                const response = await fetch(`/recruitment/ratings/${ratingId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await response.json();
+
+                closeDeleteRatingModal();
+
+                if (data.success) {
+                    updateCandidateRowRatingDisplay(currentRatingCandidateId, data.aggregate_rating, data.ratings_count);
+                    openRateCandidateModal(currentRatingCandidateId);
+                } else {
+                    alert(data.message || 'Failed to delete rating.');
+                }
+            } catch (err) {
+                console.error(err);
+                closeDeleteRatingModal();
+                alert('An error occurred while deleting the rating.');
+            } finally {
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerText = 'DELETE RATING';
+                }
+            }
+        }
+
+        async function submitCandidateRating() {
+            if (!currentRatingCandidateId) return;
+
+            if (!currentSelectedRecommendation) {
+                alert('Please select a recommendation option (Strong no, No, Yes, or Strong yes).');
+                return;
+            }
+
+            const overallScore = calculateOverallScore();
+            if (overallScore <= 0) {
+                alert('Please rate at least one area.');
+                return;
+            }
+
+            const notes = document.getElementById('rate-notes-input').value;
+            const btn = document.getElementById('submit-rating-btn');
+            btn.disabled = true;
+            btn.innerText = 'Submitting...';
+
+            try {
+                const response = await fetch(`/recruitment/candidate/${currentRatingCandidateId}/ratings`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        overall_score: overallScore,
+                        recommendation: currentSelectedRecommendation,
+                        area_ratings: currentRatingAreas,
+                        notes: notes,
+                        rating_id: activeEditingRatingId
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    updateCandidateRowRatingDisplay(currentRatingCandidateId, data.aggregate_rating, data.ratings_count);
+                    closeRateCandidateModal();
+
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed bottom-6 right-6 bg-emerald-500 text-slate-950 font-bold px-5 py-3 rounded-2xl shadow-2xl z-[99999999] flex items-center gap-2 text-sm animate-bounce';
+                    toast.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg> Rating submitted successfully!`;
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 3500);
+                } else {
+                    alert(data.message || 'Failed to submit rating.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred while submitting the rating.');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Submit rating';
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
     </script>
 </x-app-layout>
