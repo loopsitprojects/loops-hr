@@ -119,19 +119,27 @@
         <div id="customAlertDialogModal" class="fixed inset-0 flex items-center justify-center hidden" style="z-index: 999999999 !important; background-color: rgba(2, 6, 23, 0.82) !important; backdrop-filter: blur(8px) !important;" role="dialog" aria-modal="true" onclick="if(event.target === this) closeCustomAlertDialog()">
             <div class="relative overflow-hidden shadow-2xl transition-all animate-in fade-in zoom-in-95 duration-200" style="background-color: #0b0f19 !important; border: 1px solid #1e293b !important; border-radius: 24px !important; max-width: 440px !important; width: 92% !important; margin: auto !important; z-index: 1000000000 !important; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9) !important; padding: 32px 28px !important;">
                 <div class="text-center">
-                    <!-- Warning Icon Badge -->
+                    <!-- Dynamic Icon Badge -->
                     <div id="customAlertIconContainer" class="mx-auto w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style="background-color: rgba(245, 158, 11, 0.12) !important; border: 1px solid rgba(245, 158, 11, 0.3) !important;">
-                        <svg class="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <!-- Warning Icon -->
+                        <svg id="customAlertIconWarning" class="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        <!-- Success Icon -->
+                        <svg id="customAlertIconSuccess" class="w-7 h-7 text-emerald-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <!-- Error Icon -->
+                        <svg id="customAlertIconError" class="w-7 h-7 text-rose-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </div>
                     
                     <h3 id="customAlertTitle" class="font-black tracking-tight mb-2 text-white" style="font-size: 18px !important;">
-                        Rating Required
+                        Notice
                     </h3>
                     
                     <p id="customAlertMessage" class="font-medium leading-relaxed mb-6 text-slate-300" style="font-size: 13.5px !important;">
-                        A candidate rating is required before changing stage to 2nd Interview.
                     </p>
 
                     <!-- Actions -->
@@ -145,15 +153,58 @@
         </div>
 
         <script>
-            window.showCustomAlert = function(message, title = 'Rating Required') {
+            window.showCustomAlert = function(message, title = null, type = null) {
                 const modal = document.getElementById('customAlertDialogModal');
                 if (!modal) return;
 
                 const titleEl = document.getElementById('customAlertTitle');
                 const msgEl = document.getElementById('customAlertMessage');
-                
+                const iconContainer = document.getElementById('customAlertIconContainer');
+                const iconWarning = document.getElementById('customAlertIconWarning');
+                const iconSuccess = document.getElementById('customAlertIconSuccess');
+                const iconError = document.getElementById('customAlertIconError');
+
+                const msgLower = (message || '').toLowerCase();
+
+                // Smart detection of modal type & title if not explicitly provided
+                if (!type) {
+                    if (msgLower.includes('rating')) {
+                        type = 'warning';
+                        if (!title) title = 'Rating Required';
+                    } else if (msgLower.includes('success') || msgLower.includes('sent')) {
+                        type = 'success';
+                        if (!title) title = 'Success';
+                    } else if (msgLower.includes('fail') || msgLower.includes('error') || msgLower.includes('invalid')) {
+                        type = 'error';
+                        if (!title) title = 'Error';
+                    } else {
+                        type = 'info';
+                        if (!title) title = 'Notice';
+                    }
+                }
+
+                if (!title) title = 'Notice';
+
                 if (titleEl) titleEl.innerText = title;
                 if (msgEl) msgEl.innerText = message;
+
+                // Update icon container styling
+                if (iconContainer) {
+                    if (type === 'success') {
+                        iconContainer.style.backgroundColor = 'rgba(16, 185, 129, 0.12)';
+                        iconContainer.style.borderColor = 'rgba(52, 211, 153, 0.3)';
+                    } else if (type === 'error') {
+                        iconContainer.style.backgroundColor = 'rgba(225, 29, 72, 0.12)';
+                        iconContainer.style.borderColor = 'rgba(244, 63, 94, 0.3)';
+                    } else {
+                        iconContainer.style.backgroundColor = 'rgba(245, 158, 11, 0.12)';
+                        iconContainer.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+                    }
+                }
+
+                if (iconWarning) iconWarning.classList.toggle('hidden', type === 'success' || type === 'error');
+                if (iconSuccess) iconSuccess.classList.toggle('hidden', type !== 'success');
+                if (iconError) iconError.classList.toggle('hidden', type !== 'error');
 
                 modal.classList.remove('hidden');
             };
