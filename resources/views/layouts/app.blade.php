@@ -153,9 +153,13 @@
         </div>
 
         <script>
-            window.showCustomAlert = function(message, title = null, type = null) {
+            let currentAlertOnClose = null;
+
+            window.showCustomAlert = function(message, title = null, type = null, onClose = null) {
                 const modal = document.getElementById('customAlertDialogModal');
                 if (!modal) return;
+
+                currentAlertOnClose = onClose;
 
                 const titleEl = document.getElementById('customAlertTitle');
                 const msgEl = document.getElementById('customAlertMessage');
@@ -212,6 +216,11 @@
             window.closeCustomAlertDialog = function() {
                 const modal = document.getElementById('customAlertDialogModal');
                 if (modal) modal.classList.add('hidden');
+                if (typeof currentAlertOnClose === 'function') {
+                    const cb = currentAlertOnClose;
+                    currentAlertOnClose = null;
+                    cb();
+                }
             };
 
             // Override native alert to use custom dialog modal

@@ -1173,9 +1173,10 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('Assessment task sent successfully!');
                     closeAssessmentModal();
-                    window.location.reload(); // Reload to show updated status
+                    showCustomAlert('Assessment task sent successfully!', 'Success', 'success', function() {
+                        window.location.reload();
+                    });
                 } else {
                     alert('Error: ' + (data.message || 'Failed to send assessment'));
                     sendBtn.disabled = false;
@@ -2139,9 +2140,9 @@ We appreciate the opportunity to review your profile and wish you the very best 
                 
                 if (data.success) {
                     closeRejectionModal();
-                    // Optional: Show success toast
-                    alert(data.message);
-                    location.reload();
+                    showCustomAlert(data.message || 'Rejection sent successfully', 'Success', 'success', function() {
+                        location.reload();
+                    });
                 } else {
                     alert('Error: ' + (data.message || 'Failed to send rejection email'));
                 }
