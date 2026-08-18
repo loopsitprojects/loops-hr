@@ -379,7 +379,7 @@
     let lastNotificationCount = {{ auth()->user()->unreadNotifications->count() }};
     
     function checkNotifications() {
-        fetch('{{ route("notifications.check") }}')
+        fetch('/api/notifications/check')
             .then(response => response.json())
             .then(data => {
                 // Update badge count
