@@ -477,7 +477,11 @@ class RecruitmentController extends Controller
             }
 
             $mandatoryRatingStages = ['2nd_interview', 'offer_sent', 'offer_accepted', 'joined', 'rejected'];
-            if (in_array($value, $mandatoryRatingStages) && !$candidate->hasRating()) {
+            
+            // Super Admin and HR Admin are exempt from rating requirement when rejecting
+            $isExemptFromRejectRating = ($value === 'rejected') && ($user->isAdmin() || $user->isHR());
+
+            if (in_array($value, $mandatoryRatingStages) && !$isExemptFromRejectRating && !$candidate->hasRating()) {
                 $stageLabels = [
                     '2nd_interview' => '2nd Interview',
                     'offer_sent' => 'Offer Sent',
@@ -1024,10 +1028,6 @@ class RecruitmentController extends Controller
     {
         if (!auth()->user()->isAdmin() && !auth()->user()->isHR()) {
             return response()->json(['error' => 'Unauthorized access.'], 403);
-        }
-
-        if (!$candidate->hasRating()) {
-            return response()->json(['error' => 'A candidate rating is required before setting stage to Rejected.'], 422);
         }
 
         // Send Email

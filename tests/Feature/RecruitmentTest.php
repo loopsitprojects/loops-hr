@@ -159,6 +159,7 @@ class RecruitmentTest extends TestCase
         ]);
 
         $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+        $hod = User::factory()->create(['role' => User::ROLE_HOD, 'department_id' => $dept->id]);
 
         // 1. Transition to 1st_interview should succeed without rating
         $res1 = $this->actingAs($admin)->patch(route('recruitment.updateCandidate', $candidate), [
@@ -168,9 +169,20 @@ class RecruitmentTest extends TestCase
         $res1->assertStatus(200);
         $this->assertEquals('1st_interview', $candidate->fresh()->stage);
 
-        // 2. Transition to mandatory rating stages (2nd_interview, offer_sent, offer_accepted, joined, rejected) should fail (422) without rating
-        $mandatoryStages = ['2nd_interview', 'offer_sent', 'offer_accepted', 'joined', 'rejected'];
-        foreach ($mandatoryStages as $stage) {
+        // 2. Super Admin & HR Admin CAN set stage to 'rejected' without rating
+        $resRejectAdmin = $this->actingAs($admin)->patch(route('recruitment.updateCandidate', $candidate), [
+            'field' => 'stage',
+            'value' => 'rejected',
+        ]);
+        $resRejectAdmin->assertStatus(200);
+        $this->assertEquals('rejected', $candidate->fresh()->stage);
+
+        // Reset stage back to 1st_interview
+        $candidate->update(['stage' => '1st_interview']);
+
+        // 3. Other mandatory stages (2nd_interview, offer_sent, offer_accepted, joined) fail without rating for Admin
+        $mandatoryStagesNoReject = ['2nd_interview', 'offer_sent', 'offer_accepted', 'joined'];
+        foreach ($mandatoryStagesNoReject as $stage) {
             $res = $this->actingAs($admin)->patch(route('recruitment.updateCandidate', $candidate), [
                 'field' => 'stage',
                 'value' => $stage,
@@ -179,11 +191,19 @@ class RecruitmentTest extends TestCase
             $res->assertJsonStructure(['error']);
         }
 
-        // 3. Rate candidate
+        // 4. HOD cannot set 2nd_interview or rejected without a rating
+        $resHodReject = $this->actingAs($hod)->patch(route('recruitment.updateCandidate', $candidate), [
+            'field' => 'stage',
+            'value' => 'rejected',
+        ]);
+        $resHodReject->assertStatus(422);
+
+        // 5. Rate candidate
         $candidate->update(['rating' => 4.0]);
 
-        // 4. Now transition to mandatory rating stages should succeed
-        foreach ($mandatoryStages as $stage) {
+        // 6. Now transition to all mandatory rating stages should succeed
+        $allMandatoryStages = ['2nd_interview', 'offer_sent', 'offer_accepted', 'joined', 'rejected'];
+        foreach ($allMandatoryStages as $stage) {
             $res = $this->actingAs($admin)->patch(route('recruitment.updateCandidate', $candidate), [
                 'field' => 'stage',
                 'value' => $stage,
