@@ -1066,39 +1066,54 @@ class RecruitmentController extends Controller
 
         // Attendees
         $attendees = [];
+        $addedEmails = [];
+
+        $addAttendee = function ($email, $optional = false) use (&$attendees, &$addedEmails) {
+            if (!$email) {
+                return;
+            }
+            $email = trim(strtolower($email));
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return;
+            }
+            // Skip invalid/un-routable dummy domains like @loopshr.com or admin@loopshr.com
+            if (str_ends_with($email, '@loopshr.com') || $email === 'admin@loopshr.com') {
+                return;
+            }
+            if (in_array($email, $addedEmails)) {
+                return;
+            }
+
+            $addedEmails[] = $email;
+            $item = ['email' => $email];
+            if ($optional) {
+                $item['optional'] = true;
+            }
+            $attendees[] = $item;
+        };
+
         // Add Candidate
-        $attendees[] = ['email' => $candidate->email];
-        
+        $addAttendee($candidate->email);
+
         // Add Interviewers
         foreach ($interviewers as $interviewer) {
-            $attendees[] = ['email' => $interviewer->email];
+            $addAttendee($interviewer->email);
         }
 
         // Add HR Email (from SMTP config)
         $hrEmail = config('mail.from.address');
         if ($hrEmail) {
-            $attendees[] = ['email' => $hrEmail];
+            $addAttendee($hrEmail);
         }
 
-        // Add Current User (Organizer) if not already in list
+        // Add Current User (Organizer)
         $currentUserEmail = auth()->user()->email;
-        $isOrganizerIncluded = false;
-        foreach ($attendees as $attendee) {
-            if ($attendee['email'] === $currentUserEmail) {
-                $isOrganizerIncluded = true;
-                break;
-            }
-        }
-        if (!$isOrganizerIncluded) {
-            $attendees[] = ['email' => $currentUserEmail];
-        }
+        $addAttendee($currentUserEmail);
 
         // Add Guests
         $guests = array_map('trim', explode(',', $request->additional_guests ?? ''));
         foreach ($guests as $guest) {
-            if (filter_var($guest, FILTER_VALIDATE_EMAIL)) {
-                $attendees[] = ['email' => $guest, 'optional' => true];
-            }
+            $addAttendee($guest, true);
         }
 
         $googleService = new GoogleCalendarService();

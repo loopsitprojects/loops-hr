@@ -154,6 +154,18 @@ class GoogleCalendarService
 
         $service = new Calendar($client);
 
+        $sanitizedAttendees = [];
+        if (!empty($details['attendees']) && is_array($details['attendees'])) {
+            foreach ($details['attendees'] as $attendee) {
+                $email = strtolower(trim($attendee['email'] ?? ''));
+                if ($email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    if (!str_ends_with($email, '@loopshr.com') && $email !== 'admin@loopshr.com') {
+                        $sanitizedAttendees[] = $attendee;
+                    }
+                }
+            }
+        }
+
         $event = new Event([
             'summary' => $details['summary'],
             'description' => $details['description'],
@@ -165,7 +177,7 @@ class GoogleCalendarService
                 'dateTime' => $details['end_time'],
                 'timeZone' => config('app.timezone'),
             ],
-            'attendees' => $details['attendees'],
+            'attendees' => $sanitizedAttendees,
             'conferenceData' => [
                 'createRequest' => [
                     'requestId' => uniqid('meet_', true),

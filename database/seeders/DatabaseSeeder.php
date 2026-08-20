@@ -17,9 +17,18 @@ class DatabaseSeeder extends Seeder
     {
         User::factory()->create([
             'name' => 'Super Admin',
-            'email' => 'admin@loopshr.com',
+            'email' => 'admin@loopsintegrated.com',
             'password' => bcrypt('password'),
+            'role' => User::ROLE_SUPER_ADMIN,
             'is_super_admin' => true,
+        ]);
+
+        User::factory()->create([
+            'name' => 'HR Admin',
+            'email' => 'careers@loopsintegrated.com',
+            'password' => bcrypt('password'),
+            'role' => User::ROLE_HR_ADMIN,
+            'is_super_admin' => false,
         ]);
 
         // Seed default rejection template
