@@ -17,7 +17,10 @@
         <div class="max-w-md w-full text-center space-y-8">
             <!-- Logo -->
             <div class="flex justify-center">
-                <x-application-logo class="h-14 w-auto" />
+                <div class="flex items-center justify-center">
+                    <img src="https://ai.loopsintegrated.co/logo/LoopsBlack.png" alt="Loops Integrated" class="h-14 w-auto object-contain dark:hidden">
+                    <img src="https://ai.loopsintegrated.co/logo/LoopsWhite.png" alt="Loops Integrated" class="h-14 w-auto object-contain hidden dark:block">
+                </div>
             </div>
 
             <!-- Card -->
