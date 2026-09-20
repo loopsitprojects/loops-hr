@@ -235,14 +235,14 @@
 
             <div class="bg-white dark:bg-slate-900 transition-colors duration-300 rounded-3xl shadow-sm overflow-hidden border border-slate-100 dark:border-slate-800">
                 <div class="p-6 overflow-x-auto">
-                    <table class="w-full min-w-[1380px] table-fixed border-separate border-spacing-y-2">
+                    <table class="w-full min-w-[1460px] table-fixed border-separate border-spacing-y-2">
                         <thead>
                             <tr class="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-300">
                                 <th class="pb-3 pl-4 w-[40px]">
                                     <input type="checkbox" id="select-all" class="rounded border-slate-300 text-brand-navy focus:ring-brand-navy dark:border-slate-700 dark:bg-slate-900 dark:checked:bg-brand-navy">
                                 </th>
                                 <th class="pb-3 text-left w-[12%] min-w-[140px]">Name</th>
-                                <th class="pb-3 text-left w-[10%] min-w-[120px]">Email</th>
+                                <th class="pb-3 text-left w-[14%] min-w-[190px]">Email</th>
                                 <th class="pb-3 text-left w-[8%] min-w-[100px]">Phone</th>
                                 <th class="pb-3 text-left w-[6%] min-w-[80px]">Salary</th>
                                 <th class="pb-3 text-center w-[12%] min-w-[145px]">Status</th>
@@ -281,7 +281,7 @@
                                         </div>
                                     </td>
                                     <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-                                        <div class="text-xs font-medium text-slate-500 dark:text-slate-400 cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text max-w-[80px] truncate"
+                                        <div class="text-xs font-medium text-slate-500 dark:text-slate-400 cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text break-all"
                                             @if(auth()->user()->isAdmin() || auth()->user()->isHR()) contenteditable="true" @endif
                                             data-candidate-id="{{ $candidate->id }}"
                                             data-field="email"
