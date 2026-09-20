@@ -170,7 +170,11 @@ class RecruitmentController extends Controller
         
         $rejectionTemplate = \App\Models\RejectionTemplate::where('type', 'default')->first();
 
-        return view('recruitment.designation', compact('department', 'designation', 'candidates', 'showArchived', 'hods', 'stages', 'currentStage', 'rejectionTemplate'));
+        $allDepartments = Department::with(['designations' => function($q) {
+            $q->where('is_active', true)->orderBy('name', 'asc');
+        }])->orderBy('name', 'asc')->get();
+
+        return view('recruitment.designation', compact('department', 'designation', 'candidates', 'showArchived', 'hods', 'stages', 'currentStage', 'rejectionTemplate', 'allDepartments'));
     }
 
     public function storeDesignation(Request $request, Department $department)
@@ -563,6 +567,131 @@ class RecruitmentController extends Controller
 
         $candidate->update(['is_archived' => false]);
         return redirect()->back()->with('success', 'Candidate restored from archive.');
+    }
+
+    public function transferCandidate(Request $request, Candidate $candidate)
+    {
+        $user = auth()->user();
+        if (!$user->isAdmin() && !$user->isHR()) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized action.'], 403);
+            }
+            return redirect()->back()->with('error', 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'target_designation_id' => 'required|exists:designations,id',
+            'note' => 'nullable|string|max:500',
+        ]);
+
+        $targetDesignation = Designation::with('department')->findOrFail($request->target_designation_id);
+
+        if ($candidate->designation_id == $targetDesignation->id) {
+            $msg = 'Candidate is already enrolled in this recruitment.';
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->back()->with('error', $msg);
+        }
+
+        $oldRole = $candidate->designation ?? optional($candidate->designation()->first())->name ?? 'Current Role';
+        $oldDept = optional($candidate->department)->name ?? '';
+
+        $candidate->update([
+            'designation_id' => $targetDesignation->id,
+            'department_id' => $targetDesignation->department_id,
+            'designation' => $targetDesignation->name,
+            'stage' => 'default',
+            'finalized_at' => null,
+        ]);
+
+        $feedbackText = "Transferred from '{$oldRole}'" . ($oldDept ? " ({$oldDept})" : "") . " to '{$targetDesignation->name}' (" . ($targetDesignation->department->name ?? '') . ") by {$user->name}";
+        if ($request->filled('note')) {
+            $feedbackText .= " — Note: " . trim($request->note);
+        }
+
+        $candidate->feedbacks()->create([
+            'user_id' => $user->id,
+            'feedback' => $feedbackText,
+        ]);
+
+        $successMessage = "Candidate '{$candidate->name}' successfully transferred to {$targetDesignation->name} (" . ($targetDesignation->department->name ?? '') . ").";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $successMessage,
+                'target_url' => route('recruitment.designation', [$targetDesignation->department_id, $targetDesignation->id]),
+            ]);
+        }
+
+        return redirect()->back()->with('success', $successMessage);
+    }
+
+    public function bulkTransfer(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user->isAdmin() && !$user->isHR()) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized access.'], 403);
+            }
+            return redirect()->back()->with('error', 'Unauthorized access.');
+        }
+
+        $candidateIds = $request->input('selected_candidates') ?? $request->input('candidate_ids', []);
+
+        $request->merge(['candidate_ids_check' => $candidateIds]);
+        $request->validate([
+            'candidate_ids_check' => 'required|array|min:1',
+            'candidate_ids_check.*' => 'exists:candidates,id',
+            'target_designation_id' => 'required|exists:designations,id',
+            'note' => 'nullable|string|max:500',
+        ]);
+
+        $targetDesignation = Designation::with('department')->findOrFail($request->target_designation_id);
+        $candidates = Candidate::whereIn('id', $candidateIds)->get();
+
+        $transferredCount = 0;
+        foreach ($candidates as $candidate) {
+            if ($candidate->designation_id == $targetDesignation->id) {
+                continue;
+            }
+
+            $oldRole = $candidate->designation ?? optional($candidate->designation()->first())->name ?? 'Current Role';
+            $oldDept = optional($candidate->department)->name ?? '';
+
+            $candidate->update([
+                'designation_id' => $targetDesignation->id,
+                'department_id' => $targetDesignation->department_id,
+                'designation' => $targetDesignation->name,
+                'stage' => 'default',
+                'finalized_at' => null,
+            ]);
+
+            $feedbackText = "Transferred from '{$oldRole}'" . ($oldDept ? " ({$oldDept})" : "") . " to '{$targetDesignation->name}' (" . ($targetDesignation->department->name ?? '') . ") by {$user->name}";
+            if ($request->filled('note')) {
+                $feedbackText .= " — Note: " . trim($request->note);
+            }
+
+            $candidate->feedbacks()->create([
+                'user_id' => $user->id,
+                'feedback' => $feedbackText,
+            ]);
+
+            $transferredCount++;
+        }
+
+        $successMessage = "Successfully transferred {$transferredCount} " . Str::plural('candidate', $transferredCount) . " to {$targetDesignation->name} (" . ($targetDesignation->department->name ?? '') . ").";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $successMessage,
+                'target_url' => route('recruitment.designation', [$targetDesignation->department_id, $targetDesignation->id]),
+            ]);
+        }
+
+        return redirect()->back()->with('success', $successMessage);
     }
 
     public function bulkArchive(Request $request)

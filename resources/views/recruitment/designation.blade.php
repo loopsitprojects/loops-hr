@@ -69,6 +69,14 @@
                             {{ __('Delete Selected') }} (<span class="selected-count">0</span>)
                         </button>
                     @else
+                        <button type="button" 
+                           onclick="openBulkTransferModal()" 
+                           class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-indigo-600 hover:bg-indigo-700 text-white rounded-md text-xs font-semibold uppercase tracking-widest transition-all duration-300 shadow-sm">
+                            <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                            </svg>
+                            {{ __('Transfer Selected') }} (<span class="selected-count">0</span>)
+                        </button>
                         <button type="submit" 
                            formaction="{{ route('recruitment.bulkArchive') }}"
                            onclick="return confirm('Are you sure you want to archive the selected candidates?');" 
@@ -235,7 +243,7 @@
 
             <div class="bg-white dark:bg-slate-900 transition-colors duration-300 rounded-3xl shadow-sm overflow-hidden border border-slate-100 dark:border-slate-800">
                 <div class="p-6 overflow-x-auto">
-                    <table class="w-full min-w-[1460px] table-fixed border-separate border-spacing-y-2">
+                    <table class="w-full min-w-[1520px] table-fixed border-separate border-spacing-y-2">
                         <thead>
                             <tr class="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-300">
                                 <th class="pb-3 pl-4 w-[40px]">
@@ -260,6 +268,7 @@
                                 <th class="pb-3 text-center w-[4%] min-w-[45px]">CV</th>
                                 <th class="pb-3 text-center w-[4%] min-w-[45px]">PTF</th>
                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
+                                    <th class="pb-3 text-center w-[4%] min-w-[45px]">Trf</th>
                                     <th class="pb-3 text-center w-[4%] min-w-[45px]">{{ $showArchived ? 'Rst' : 'Arc' }}</th>
                                 @endif
                             </tr>
@@ -489,7 +498,7 @@
                                             data-candidate-id="{{ $candidate->id }}"
                                             data-portfolio="{{ $candidate->portfolio }}"
                                             title="{{ $candidate->portfolio ?: 'Add portfolio link' }}"
-                                            onclick="openPortfolioModal({{ $candidate->id }}, '{{ addslashes($candidate->portfolio) }}')">
+                                            onclick="openPortfolioModal({{ $candidate->id }}, '{{ addslashes($candidate->portfolio ?? '') }}')">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
                                             </svg>
@@ -497,6 +506,18 @@
                                     </td>
 
                                     @if(auth()->user()->isAdmin() || auth()->user()->isHR())
+                                        {{-- Transfer Column --}}
+                                        <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
+                                            <button type="button" 
+                                                    onclick="openTransferModal({{ $candidate->id }}, '{{ addslashes($candidate->name ?? '') }}', '{{ addslashes($candidate->email ?? '') }}', {{ $candidate->designation_id ?? $designation->id }}, '{{ addslashes($candidate->designation ?? $designation->name ?? '') }}', '{{ addslashes(optional($candidate->department)->name ?? $department->name ?? '') }}')"
+                                                    class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all active:scale-95 shadow-sm group/trf" 
+                                                    title="Transfer candidate to another recruitment">
+                                                <svg class="w-3.5 h-3.5 transition-transform group-hover/trf:rotate-180 duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                                </svg>
+                                            </button>
+                                        </td>
+
                                         {{-- Archive / Revert Column --}}
                                         <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
                                             @if($showArchived)
@@ -2080,10 +2101,290 @@ We appreciate the opportunity to review your profile and wish you the very best 
                 </div>
             </div>
         </div>
+    <!-- Transfer Candidate Modal -->
+    <div id="transferModal" class="hidden fixed inset-0 z-[9999999] overflow-y-auto" style="z-index: 9999999 !important;" aria-labelledby="transfer-modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" aria-hidden="true" onclick="closeTransferModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-100 dark:border-slate-800 relative z-[99] shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+                
+                <!-- Modal Header -->
+                <div class="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center border border-indigo-500/20">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 id="transfer-modal-title" class="text-lg font-black text-brand-navy dark:text-white uppercase tracking-tight">Transfer Candidate</h3>
+                            <p class="text-xs text-slate-400">Move candidate to another recruitment role</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="closeTransferModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors mt-1">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="p-8 space-y-5">
+                    <!-- Target Candidate Banner -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 flex flex-col gap-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Candidate</span>
+                            <span id="transfer-candidate-email-display" class="text-xs font-medium text-slate-500 dark:text-slate-400 truncate max-w-[200px]"></span>
+                        </div>
+                        <h4 id="transfer-candidate-name-display" class="text-sm font-bold text-slate-800 dark:text-white"></h4>
+                        <div class="flex items-center gap-2 pt-1 border-t border-slate-200/50 dark:border-slate-700/50">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Current Recruitment:</span>
+                            <span id="transfer-current-recruitment-display" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-300"></span>
+                        </div>
+                    </div>
+
+                    <!-- Target Recruitment Selection -->
+                    <div>
+                        <label for="transfer-target-designation" class="block text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+                            Transfer To Recruitment <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <select id="transfer-target-designation" 
+                                    onchange="onTransferTargetChange()" 
+                                    class="w-full bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer">
+                                <option value="" disabled selected>-- Select Target Recruitment --</option>
+                                @if(isset($allDepartments))
+                                    @foreach($allDepartments as $dept)
+                                        @if($dept->designations->isNotEmpty())
+                                            <optgroup label="{{ $dept->name }}">
+                                                @foreach($dept->designations as $desig)
+                                                    <option value="{{ $desig->id }}" 
+                                                            data-dept="{{ $dept->name }}" 
+                                                            data-name="{{ $desig->name }}"
+                                                            {{ $desig->id == $designation->id ? 'data-current-role="true"' : '' }}>
+                                                        {{ $desig->name }} {{ $desig->id == $designation->id ? '(Current)' : '' }}
+                                                    </option>
+                                                @endforeach
+                                            </optgroup>
+                                        @endif
+                                    @endforeach
+                                @endif
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Transfer Note -->
+                    <div>
+                        <label for="transfer-note" class="block text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+                            Reason / Note <span class="text-slate-400 font-normal lowercase">(optional)</span>
+                        </label>
+                        <textarea id="transfer-note" rows="2" 
+                                  class="w-full bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none placeholder:text-slate-400"
+                                  placeholder="Add an optional transfer note for candidate history..."></textarea>
+                    </div>
+
+                    <!-- Confirmation Callout (dynamically revealed on selection) -->
+                    <div id="transfer-confirmation-box" class="hidden p-4 rounded-2xl bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/20 text-xs">
+                        <div class="flex items-start gap-3">
+                            <div class="p-1.5 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h5 class="font-black text-[11px] uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-1">Confirmation Required</h5>
+                                <p class="text-slate-600 dark:text-slate-300 text-xs leading-relaxed">
+                                    Are you sure you want to transfer <strong id="transfer-confirm-name-target" class="text-slate-900 dark:text-white">this candidate</strong> to <strong id="transfer-confirm-recruitment-target" class="text-indigo-600 dark:text-indigo-400 font-bold">...</strong>?
+                                </p>
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5">
+                                    • Candidate will be relocated to the new recruitment.<br>
+                                    • Candidate status in the new recruitment will start at <strong>Default</strong>.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="px-8 py-5 bg-slate-50 dark:bg-slate-800/50 flex justify-end items-center gap-3 rounded-b-3xl border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" onclick="closeTransferModal()" class="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="button" id="confirm-transfer-btn" onclick="submitTransferAction()" disabled class="inline-flex items-center gap-2 px-8 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95">
+                        <span id="confirm-transfer-btn-text">Confirm Transfer</span>
+                        <svg id="confirm-transfer-spinner" class="hidden w-3.5 h-3.5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
     @endpush
 
     <script>
+        // Candidate Transfer Logic
+        let currentTransferData = {
+            mode: 'single',
+            candidateId: null,
+            candidateIds: [],
+            candidateName: '',
+            currentDesignationId: null,
+            currentDesignationName: '',
+            currentDepartmentName: ''
+        };
+
+        function openTransferModal(candidateId, candidateName, candidateEmail, currentDesignationId, currentDesignationName, currentDepartmentName) {
+            currentTransferData.mode = 'single';
+            currentTransferData.candidateId = candidateId;
+            currentTransferData.candidateIds = [candidateId];
+            currentTransferData.candidateName = candidateName;
+            currentTransferData.currentDesignationId = currentDesignationId;
+            currentTransferData.currentDesignationName = currentDesignationName;
+            currentTransferData.currentDepartmentName = currentDepartmentName;
+
+            document.getElementById('transfer-modal-title').innerText = 'Transfer Candidate';
+            document.getElementById('transfer-candidate-name-display').innerText = candidateName;
+            document.getElementById('transfer-candidate-email-display').innerText = candidateEmail || '';
+            document.getElementById('transfer-current-recruitment-display').innerText = `${currentDepartmentName} › ${currentDesignationName}`;
+            document.getElementById('transfer-confirm-name-target').innerText = candidateName;
+
+            resetTransferForm(currentDesignationId);
+            document.getElementById('transferModal').classList.remove('hidden');
+        }
+
+        function openBulkTransferModal() {
+            const checked = Array.from(document.querySelectorAll('.candidate-checkbox:checked'));
+            if (checked.length === 0) {
+                alert('Please select at least one candidate to transfer.');
+                return;
+            }
+
+            const candidateIds = checked.map(cb => cb.value);
+            currentTransferData.mode = 'bulk';
+            currentTransferData.candidateId = null;
+            currentTransferData.candidateIds = candidateIds;
+            currentTransferData.candidateName = `${candidateIds.length} Selected Candidates`;
+            currentTransferData.currentDesignationId = {{ $designation->id }};
+            currentTransferData.currentDesignationName = '{{ addslashes($designation->name) }}';
+            currentTransferData.currentDepartmentName = '{{ addslashes($department->name) }}';
+
+            document.getElementById('transfer-modal-title').innerText = `Transfer ${candidateIds.length} Candidates`;
+            document.getElementById('transfer-candidate-name-display').innerText = `${candidateIds.length} Candidates Selected`;
+            document.getElementById('transfer-candidate-email-display').innerText = 'Bulk Selection';
+            document.getElementById('transfer-current-recruitment-display').innerText = `{{ addslashes($department->name) }} › {{ addslashes($designation->name) }}`;
+            document.getElementById('transfer-confirm-name-target').innerText = `${candidateIds.length} candidates`;
+
+            resetTransferForm({{ $designation->id }});
+            document.getElementById('transferModal').classList.remove('hidden');
+        }
+
+        function resetTransferForm(currentDesigId) {
+            const select = document.getElementById('transfer-target-designation');
+            select.value = '';
+            document.getElementById('transfer-note').value = '';
+            document.getElementById('transfer-confirmation-box').classList.add('hidden');
+            
+            const submitBtn = document.getElementById('confirm-transfer-btn');
+            submitBtn.disabled = true;
+
+            // Disable current role option in select
+            Array.from(select.options).forEach(opt => {
+                if (parseInt(opt.value, 10) === parseInt(currentDesigId, 10)) {
+                    opt.disabled = true;
+                } else {
+                    opt.disabled = false;
+                }
+            });
+        }
+
+        function closeTransferModal() {
+            document.getElementById('transferModal').classList.add('hidden');
+        }
+
+        function onTransferTargetChange() {
+            const select = document.getElementById('transfer-target-designation');
+            const submitBtn = document.getElementById('confirm-transfer-btn');
+            const confirmBox = document.getElementById('transfer-confirmation-box');
+            const confirmTargetLabel = document.getElementById('transfer-confirm-recruitment-target');
+
+            const selectedOption = select.options[select.selectedIndex];
+            if (selectedOption && selectedOption.value) {
+                const targetName = selectedOption.getAttribute('data-name');
+                const targetDept = selectedOption.getAttribute('data-dept');
+                confirmTargetLabel.innerText = `${targetDept} › ${targetName}`;
+                confirmBox.classList.remove('hidden');
+                submitBtn.disabled = false;
+            } else {
+                confirmBox.classList.add('hidden');
+                submitBtn.disabled = true;
+            }
+        }
+
+        async function submitTransferAction() {
+            const select = document.getElementById('transfer-target-designation');
+            const targetDesignationId = select.value;
+            if (!targetDesignationId) {
+                alert('Please select a target recruitment.');
+                return;
+            }
+
+            const note = document.getElementById('transfer-note').value;
+            const submitBtn = document.getElementById('confirm-transfer-btn');
+            const btnText = document.getElementById('confirm-transfer-btn-text');
+            const spinner = document.getElementById('confirm-transfer-spinner');
+
+            submitBtn.disabled = true;
+            btnText.innerText = 'Transferring...';
+            spinner.classList.remove('hidden');
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            try {
+                let url, payload;
+                if (currentTransferData.mode === 'single') {
+                    url = `/recruitment/candidate/${currentTransferData.candidateId}/transfer`;
+                    payload = {
+                        target_designation_id: targetDesignationId,
+                        note: note
+                    };
+                } else {
+                    url = `/recruitment/candidates/bulk-transfer`;
+                    payload = {
+                        selected_candidates: currentTransferData.candidateIds,
+                        target_designation_id: targetDesignationId,
+                        note: note
+                    };
+                }
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Failed to transfer candidate. Please try again.');
+                    submitBtn.disabled = false;
+                    btnText.innerText = 'Confirm Transfer';
+                    spinner.classList.add('hidden');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An unexpected error occurred while transferring.');
+                submitBtn.disabled = false;
+                btnText.innerText = 'Confirm Transfer';
+                spinner.classList.add('hidden');
+            }
+        }
+
         function openRejectionModal(candidateId, candidateName) {
             document.getElementById('rejection-candidate-id').value = candidateId;
             let textarea = document.getElementById('rejection-textarea');
