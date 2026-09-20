@@ -235,32 +235,32 @@
 
             <div class="bg-white dark:bg-slate-900 transition-colors duration-300 rounded-3xl shadow-sm overflow-hidden border border-slate-100 dark:border-slate-800">
                 <div class="p-6 overflow-x-auto">
-                    <table class="min-w-full table-fixed border-separate border-spacing-y-2">
+                    <table class="w-full min-w-[1380px] table-fixed border-separate border-spacing-y-2">
                         <thead>
                             <tr class="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-300">
-                                <th class="pb-3 pl-4 w-[3%]">
+                                <th class="pb-3 pl-4 w-[40px]">
                                     <input type="checkbox" id="select-all" class="rounded border-slate-300 text-brand-navy focus:ring-brand-navy dark:border-slate-700 dark:bg-slate-900 dark:checked:bg-brand-navy">
                                 </th>
-                                <th class="pb-3 text-left w-[11%]">Name</th>
-                                <th class="pb-3 text-left w-[9%]">Email</th>
-                                <th class="pb-3 text-left w-[8%]">Phone</th>
-                                <th class="pb-3 text-left w-[6%]">Salary</th>
-                                <th class="pb-3 text-center w-[10%]">Status</th>
-                                <th class="pb-3 text-center w-[7%]">Pipeline</th>
-                                <th class="pb-3 text-center w-[5%]">Rating</th>
-                                <th class="pb-3 text-center w-[4%]">Fbk</th>
+                                <th class="pb-3 text-left w-[12%] min-w-[140px]">Name</th>
+                                <th class="pb-3 text-left w-[10%] min-w-[120px]">Email</th>
+                                <th class="pb-3 text-left w-[8%] min-w-[100px]">Phone</th>
+                                <th class="pb-3 text-left w-[6%] min-w-[80px]">Salary</th>
+                                <th class="pb-3 text-center w-[12%] min-w-[145px]">Status</th>
+                                <th class="pb-3 text-center w-[7%] min-w-[85px]">Pipeline</th>
+                                <th class="pb-3 text-center w-[5%] min-w-[55px]">Rating</th>
+                                <th class="pb-3 text-center w-[4%] min-w-[45px]">Fbk</th>
                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
-                                    <th class="pb-3 text-center w-[4%]">Test</th>
-                                    <th class="pb-3 text-center w-[4%]">Rej</th>
+                                    <th class="pb-3 text-center w-[4%] min-w-[45px]">Test</th>
+                                    <th class="pb-3 text-center w-[4%] min-w-[45px]">Rej</th>
                                 @endif
-                                <th class="pb-3 text-center w-[4%]">Link</th>
+                                <th class="pb-3 text-center w-[4%] min-w-[45px]">Link</th>
                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
-                                    <th class="pb-3 text-center w-[4%]">Sch</th>
+                                    <th class="pb-3 text-center w-[4%] min-w-[45px]">Sch</th>
                                 @endif
-                                <th class="pb-3 text-center w-[4%]">CV</th>
-                                <th class="pb-3 text-center w-[4%]">PTF</th>
+                                <th class="pb-3 text-center w-[4%] min-w-[45px]">CV</th>
+                                <th class="pb-3 text-center w-[4%] min-w-[45px]">PTF</th>
                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
-                                    <th class="pb-3 text-center w-[4%]">{{ $showArchived ? 'Rst' : 'Arc' }}</th>
+                                    <th class="pb-3 text-center w-[4%] min-w-[45px]">{{ $showArchived ? 'Rst' : 'Arc' }}</th>
                                 @endif
                             </tr>
                         </thead>
@@ -312,33 +312,26 @@
                                             {{ $candidate->expected_salary ? (is_numeric(str_replace(',', '', $candidate->expected_salary)) ? number_format(str_replace(',', '', $candidate->expected_salary)) : $candidate->expected_salary) : '—' }}
                                         </div>
                                     </td>
-                                    <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-                                        <div class="relative flex items-center">
+                                    <td class="py-3 px-2 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
+                                        <div class="relative inline-flex items-center justify-center w-full min-w-[135px]">
                                             <select data-candidate-id="{{ $candidate->id }}"
                                                 data-field="stage"
-                                                class="editable-field block w-full bg-transparent text-[10px] font-bold uppercase cursor-pointer focus:outline-none transition-colors pr-5 text-slate-700 dark:text-white disabled:cursor-not-allowed disabled:opacity-70"
-                                                style="appearance: none !important; -webkit-appearance: none !important; background-color: transparent !important; border: none !important; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right center; background-size: 0.5rem auto;"
+                                                class="editable-field block w-full bg-slate-100/80 hover:bg-slate-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700/80 rounded-xl px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-teal/20 transition-all text-center pr-7 disabled:cursor-not-allowed disabled:opacity-70"
+                                                style="appearance: none !important; -webkit-appearance: none !important; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 8px center; background-size: 0.45rem auto;"
                                                 {{ (auth()->user()->isAdmin() || auth()->user()->isHR() || auth()->user()->isHOD() || auth()->user()->isManagers() || auth()->user()->isManager()) ? '' : 'disabled' }}>
                                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR() || auth()->user()->isManager() || auth()->user()->isHOD())
                                                     {{-- Admin, HR, Operations Manager, and HOD see all options --}}
-                                                    <option value="default" {{ $candidate->stage == 'default' ? 'selected' : '' }}>default</option>
-                                                    <option value="shortlisted" {{ $candidate->stage == 'shortlisted' ? 'selected' : '' }}>shortlisted</option>
-                                                    <option value="test_sent" {{ $candidate->stage == 'test_sent' ? 'selected' : '' }}>test sent</option>
-                                                    <option value="test_received" {{ $candidate->stage == 'test_received' ? 'selected' : '' }}>test received</option>
-                                                    <option value="1st_interview" {{ $candidate->stage == '1st_interview' ? 'selected' : '' }}>1st interview</option>
-                                                    <option value="2nd_interview" {{ $candidate->stage == '2nd_interview' ? 'selected' : '' }}>2nd interview</option>
-                                                    <option value="offer_sent" {{ $candidate->stage == 'offer_sent' ? 'selected' : '' }}>offer sent</option>
-                                                    <option value="offer_accepted" {{ $candidate->stage == 'offer_accepted' ? 'selected' : '' }}>offer accepted</option>
-                                                    <option value="joined" {{ $candidate->stage == 'joined' ? 'selected' : '' }}>joined</option>
-                                                    <option value="rejected" {{ $candidate->stage == 'rejected' ? 'selected' : '' }}>rejected</option>
+                                                    @foreach($stages as $stageKey => $stageLabel)
+                                                        <option value="{{ $stageKey }}" {{ $candidate->stage == $stageKey ? 'selected' : '' }}>{{ $stageLabel }}</option>
+                                                    @endforeach
                                                 @else
                                                     {{-- HOD and Managers see limited options --}}
                                                     @if(!in_array($candidate->stage, ['1st_interview', '2nd_interview', 'rejected']))
-                                                        <option value="{{ $candidate->stage }}" selected>{{ str_replace('_', ' ', $candidate->stage) }}</option>
-                                                     @endif
-                                                    <option value="1st_interview" {{ $candidate->stage == '1st_interview' ? 'selected' : '' }}>1st interview</option>
-                                                    <option value="2nd_interview" {{ $candidate->stage == '2nd_interview' ? 'selected' : '' }}>2nd interview</option>
-                                                    <option value="rejected" {{ $candidate->stage == 'rejected' ? 'selected' : '' }}>rejected</option>
+                                                        <option value="{{ $candidate->stage }}" selected>{{ $stages[$candidate->stage] ?? str_replace('_', ' ', $candidate->stage) }}</option>
+                                                    @endif
+                                                    <option value="1st_interview" {{ $candidate->stage == '1st_interview' ? 'selected' : '' }}>1st Interview</option>
+                                                    <option value="2nd_interview" {{ $candidate->stage == '2nd_interview' ? 'selected' : '' }}>2nd Interview</option>
+                                                    <option value="rejected" {{ $candidate->stage == 'rejected' ? 'selected' : '' }}>Rejected</option>
                                                 @endif
                                             </select>
                                         </div>
@@ -363,22 +356,22 @@
                                         </div>
                                     </td>
                                     <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
-                                        <div class="relative flex flex-col items-center justify-center gap-1">
+                                        <div class="relative flex flex-col items-center justify-center gap-0.5">
                                             <button type="button" 
                                                 onclick="openRateCandidateModal({{ $candidate->id }})"
-                                                class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-teal/10 hover:bg-brand-teal/20 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-brand-teal dark:text-emerald-400 font-extrabold text-xs transition-all border border-brand-teal/20 dark:border-emerald-500/30 group/rate shadow-sm active:scale-95"
-                                                title="Rate candidate">
-                                                <svg class="w-3.5 h-3.5 fill-current text-amber-400" viewBox="0 0 20 20">
+                                                class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-400/10 hover:bg-amber-400/20 dark:bg-amber-400/10 dark:hover:bg-amber-400/20 text-amber-400 border border-amber-400/20 dark:border-amber-400/30 transition-all shadow-sm active:scale-95 group/rate"
+                                                title="{{ $candidate->rating ? 'Rating: ' . number_format($candidate->rating, 1) . ' / 5.0' : 'Rate candidate' }}">
+                                                <svg class="w-4 h-4 fill-current text-amber-400 transition-transform group-hover/rate:scale-110" viewBox="0 0 20 20">
                                                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                                                 </svg>
-                                                <span class="candidate-rating-display-{{ $candidate->id }}">
-                                                    {{ $candidate->rating ? number_format($candidate->rating, 1) : 'Rate' }}
-                                                </span>
                                             </button>
+                                            <span class="candidate-rating-display-{{ $candidate->id }} text-[10px] font-bold text-amber-500 dark:text-amber-400 {{ $candidate->rating ? '' : 'hidden' }}">
+                                                {{ $candidate->rating ? number_format($candidate->rating, 1) : '' }}
+                                            </span>
                                             @php
                                                 $ratingsCount = $candidate->ratings->count();
                                             @endphp
-                                            <span class="candidate-rating-count-{{ $candidate->id }} text-[10px] font-medium text-slate-400 dark:text-slate-500">
+                                            <span class="candidate-rating-count-{{ $candidate->id }} text-[9px] font-medium text-slate-400 dark:text-slate-500 {{ $ratingsCount > 0 ? '' : 'hidden' }}">
                                                 @if($ratingsCount > 0)
                                                     {{ $ratingsCount }} {{ Str::plural('rating', $ratingsCount) }}
                                                 @endif
@@ -3127,13 +3120,25 @@ We appreciate the opportunity to review your profile and wish you the very best 
         function updateCandidateRowRatingDisplay(candidateId, aggregateRating, ratingsCount) {
             const badgeEl = document.querySelector(`.candidate-rating-display-${candidateId}`);
             if (badgeEl) {
-                badgeEl.innerText = (aggregateRating !== null && aggregateRating !== undefined) ? parseFloat(aggregateRating).toFixed(1) : 'Rate';
+                if (aggregateRating !== null && aggregateRating !== undefined && parseFloat(aggregateRating) > 0) {
+                    badgeEl.innerText = parseFloat(aggregateRating).toFixed(1);
+                    badgeEl.classList.remove('hidden');
+                } else {
+                    badgeEl.innerText = '';
+                    badgeEl.classList.add('hidden');
+                }
             }
             const countEl = document.querySelector(`.candidate-rating-count-${candidateId}`);
             if (countEl) {
                 if (ratingsCount !== undefined && ratingsCount !== null) {
                     const cnt = parseInt(ratingsCount, 10);
-                    countEl.innerText = cnt > 0 ? `${cnt} ${cnt === 1 ? 'rating' : 'ratings'}` : '';
+                    if (cnt > 0) {
+                        countEl.innerText = `${cnt} ${cnt === 1 ? 'rating' : 'ratings'}`;
+                        countEl.classList.remove('hidden');
+                    } else {
+                        countEl.innerText = '';
+                        countEl.classList.add('hidden');
+                    }
                 }
             }
         }
