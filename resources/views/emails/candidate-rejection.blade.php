@@ -92,7 +92,7 @@
                 <table width="100%" cellspacing="0" cellpadding="0" border="0">
                     <tr>
                         <td align="center" style="padding: 12px 0;">
-                            <img src="{{ asset('crew-logo-dark.png') }}" height="48" alt="Crew" style="display: block; border: 0; max-height: 48px; width: auto;">
+                            <img src="{{ asset('loops-icon.png') }}" height="48" alt="Loops" style="display: block; border: 0; max-height: 48px; width: auto;">
                         </td>
                     </tr>
                 </table>
