@@ -6,7 +6,6 @@
                 <h2 class="font-black text-2xl text-brand-navy leading-tight tracking-tight">
                     {{ __('System Users') }}
                 </h2>
-                <p class="text-sm text-brand-slate mt-1 font-medium">Manage access to the Loops_HR platform</p>
             </div>
             <a href="{{ route('register') }}" class="inline-flex items-center px-6 py-3 bg-brand-navy border border-transparent rounded-2xl font-bold text-xs text-white uppercase tracking-widest hover:bg-slate-800 hover:shadow-lg transition-all duration-300">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

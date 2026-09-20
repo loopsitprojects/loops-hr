@@ -112,8 +112,8 @@
                 <table width="100%" cellspacing="0" cellpadding="0" border="0">
                     <tr>
                         <td align="center" style="padding: 12px 0;">
-                    <img src="https://ai.loopsintegrated.co/logo/LoopsWhite.png" height="60" alt="Loops Integrated" style="display: block; border: 0;">
-                </td>
+                            <img src="https://ai.loopsintegrated.co/logo/LoopsWhite.png" height="60" alt="Loops Integrated" style="display: block; border: 0;">
+                        </td>
                     </tr>
                 </table>
             </div>
