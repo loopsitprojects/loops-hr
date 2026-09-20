@@ -171,7 +171,7 @@ class RecruitmentController extends Controller
         $rejectionTemplate = \App\Models\RejectionTemplate::where('type', 'default')->first();
 
         $allDepartments = Department::with(['designations' => function($q) {
-            $q->where('is_active', true)->orderBy('name', 'asc');
+            $q->orderBy('name', 'asc');
         }])->orderBy('name', 'asc')->get();
 
         return view('recruitment.designation', compact('department', 'designation', 'candidates', 'showArchived', 'hods', 'stages', 'currentStage', 'rejectionTemplate', 'allDepartments'));

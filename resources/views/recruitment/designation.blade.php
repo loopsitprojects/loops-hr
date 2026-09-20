@@ -509,8 +509,14 @@
                                         {{-- Transfer Column --}}
                                         <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
                                             <button type="button" 
-                                                    onclick="openTransferModal({{ $candidate->id }}, '{{ addslashes($candidate->name ?? '') }}', '{{ addslashes($candidate->email ?? '') }}', {{ $candidate->designation_id ?? $designation->id }}, '{{ addslashes($candidate->designation ?? $designation->name ?? '') }}', '{{ addslashes(optional($candidate->department)->name ?? $department->name ?? '') }}')"
-                                                    class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all active:scale-95 shadow-sm group/trf" 
+                                                    data-id="{{ $candidate->id }}"
+                                                    data-name="{{ $candidate->name }}"
+                                                    data-email="{{ $candidate->email ?? '' }}"
+                                                    data-designation-id="{{ $candidate->designation_id ?? $designation->id }}"
+                                                    data-designation-name="{{ $candidate->designation ?? $designation->name }}"
+                                                    data-department-name="{{ optional($candidate->department)->name ?? $department->name }}"
+                                                    onclick="openTransferModal(this)"
+                                                    class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all active:scale-95 shadow-sm group/trf cursor-pointer" 
                                                     title="Transfer candidate to another recruitment">
                                                 <svg class="w-3.5 h-3.5 transition-transform group-hover/trf:rotate-180 duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
@@ -2101,8 +2107,10 @@ We appreciate the opportunity to review your profile and wish you the very best 
                 </div>
             </div>
         </div>
+    </div>
+
     <!-- Transfer Candidate Modal -->
-    <div id="transferModal" class="hidden fixed inset-0 z-[9999999] overflow-y-auto" style="z-index: 9999999 !important;" aria-labelledby="transfer-modal-title" role="dialog" aria-modal="true">
+    <div id="transferModal" class="hidden fixed inset-0 z-[99999999] overflow-y-auto" style="z-index: 99999999 !important;" aria-labelledby="transfer-modal-title" role="dialog" aria-modal="true">
         <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" aria-hidden="true" onclick="closeTransferModal()"></div>
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
@@ -2233,7 +2241,18 @@ We appreciate the opportunity to review your profile and wish you the very best 
             currentDepartmentName: ''
         };
 
-        function openTransferModal(candidateId, candidateName, candidateEmail, currentDesignationId, currentDesignationName, currentDepartmentName) {
+        function openTransferModal(candidateIdOrBtn, candidateName, candidateEmail, currentDesignationId, currentDesignationName, currentDepartmentName) {
+            let candidateId = candidateIdOrBtn;
+            if (candidateIdOrBtn && typeof candidateIdOrBtn === 'object' && candidateIdOrBtn.dataset) {
+                const btn = candidateIdOrBtn;
+                candidateId = parseInt(btn.dataset.id, 10);
+                candidateName = btn.dataset.name || '';
+                candidateEmail = btn.dataset.email || '';
+                currentDesignationId = parseInt(btn.dataset.designationId, 10) || {{ $designation->id }};
+                currentDesignationName = btn.dataset.designationName || '{{ addslashes($designation->name) }}';
+                currentDepartmentName = btn.dataset.departmentName || '{{ addslashes($department->name) }}';
+            }
+
             currentTransferData.mode = 'single';
             currentTransferData.candidateId = candidateId;
             currentTransferData.candidateIds = [candidateId];
@@ -2242,14 +2261,26 @@ We appreciate the opportunity to review your profile and wish you the very best 
             currentTransferData.currentDesignationName = currentDesignationName;
             currentTransferData.currentDepartmentName = currentDepartmentName;
 
-            document.getElementById('transfer-modal-title').innerText = 'Transfer Candidate';
-            document.getElementById('transfer-candidate-name-display').innerText = candidateName;
-            document.getElementById('transfer-candidate-email-display').innerText = candidateEmail || '';
-            document.getElementById('transfer-current-recruitment-display').innerText = `${currentDepartmentName} › ${currentDesignationName}`;
-            document.getElementById('transfer-confirm-name-target').innerText = candidateName;
+            const modalTitle = document.getElementById('transfer-modal-title');
+            if (modalTitle) modalTitle.innerText = 'Transfer Candidate';
+
+            const nameDisplay = document.getElementById('transfer-candidate-name-display');
+            if (nameDisplay) nameDisplay.innerText = candidateName;
+
+            const emailDisplay = document.getElementById('transfer-candidate-email-display');
+            if (emailDisplay) emailDisplay.innerText = candidateEmail || '';
+
+            const currentRecDisplay = document.getElementById('transfer-current-recruitment-display');
+            if (currentRecDisplay) currentRecDisplay.innerText = `${currentDepartmentName} › ${currentDesignationName}`;
+
+            const confirmTarget = document.getElementById('transfer-confirm-name-target');
+            if (confirmTarget) confirmTarget.innerText = candidateName;
 
             resetTransferForm(currentDesignationId);
-            document.getElementById('transferModal').classList.remove('hidden');
+            const modal = document.getElementById('transferModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
         }
 
         function openBulkTransferModal() {
@@ -2280,25 +2311,30 @@ We appreciate the opportunity to review your profile and wish you the very best 
 
         function resetTransferForm(currentDesigId) {
             const select = document.getElementById('transfer-target-designation');
-            select.value = '';
-            document.getElementById('transfer-note').value = '';
-            document.getElementById('transfer-confirmation-box').classList.add('hidden');
+            if (select) {
+                select.value = '';
+                // Disable current role option in select
+                Array.from(select.options).forEach(opt => {
+                    if (parseInt(opt.value, 10) === parseInt(currentDesigId, 10)) {
+                        opt.disabled = true;
+                    } else {
+                        opt.disabled = false;
+                    }
+                });
+            }
+            const note = document.getElementById('transfer-note');
+            if (note) note.value = '';
+
+            const confirmBox = document.getElementById('transfer-confirmation-box');
+            if (confirmBox) confirmBox.classList.add('hidden');
             
             const submitBtn = document.getElementById('confirm-transfer-btn');
-            submitBtn.disabled = true;
-
-            // Disable current role option in select
-            Array.from(select.options).forEach(opt => {
-                if (parseInt(opt.value, 10) === parseInt(currentDesigId, 10)) {
-                    opt.disabled = true;
-                } else {
-                    opt.disabled = false;
-                }
-            });
+            if (submitBtn) submitBtn.disabled = true;
         }
 
         function closeTransferModal() {
-            document.getElementById('transferModal').classList.add('hidden');
+            const modal = document.getElementById('transferModal');
+            if (modal) modal.classList.add('hidden');
         }
 
         function onTransferTargetChange() {
