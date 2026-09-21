@@ -1,7 +1,7 @@
 <x-app-layout maxWidth="wide">
     @section('title', $designation->title . ' - ' . $department->name . ' | recruitment')
     <x-slot name="header">
-        <div class="flex flex-col md:flex-row md:items-center justify-between px-2 gap-4 lg:gap-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 lg:gap-6">
             <div class="shrink-0">
                 <nav class="flex mb-2" aria-label="Breadcrumb">
                     <ol class="inline-flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest">
@@ -224,8 +224,8 @@
         </div>
     </x-slot>
 
-    <div class="py-2 sm:py-3">
-        <div class="max-w-[98%] 2xl:max-w-[1750px] mx-auto px-2 sm:px-4 lg:px-6 mt-1">
+    <div class="py-5 sm:py-7">
+        <div class="max-w-[95%] 2xl:max-w-[1650px] mx-auto px-4 sm:px-6 lg:px-8">
             @if(request()->has('candidate_id'))
                 <div class="mb-4 bg-brand-teal/10 border border-brand-teal/20 p-3 rounded-2xl flex items-center justify-between animate-in fade-in slide-in-from-top-4 duration-500">
                     <div class="flex items-center gap-3">
@@ -247,7 +247,7 @@
             @endif
             
             <!-- Status Filter -->
-            <div class="mb-3 sm:mb-4 overflow-x-auto no-scrollbar pb-1">
+            <div class="mb-4 sm:mb-6 overflow-x-auto no-scrollbar pb-1">
                 <div class="flex items-center gap-2 min-w-max">
                     <a href="{{ request()->fullUrlWithQuery(['stage' => 'all', 'page' => null]) }}" 
                        class="h-8 px-4 flex items-center justify-center rounded-full text-[9px] whitespace-nowrap text-center leading-3 font-black uppercase tracking-[0.1em] transition-all duration-300 {{ $currentStage == 'all' ? 'shadow-lg shadow-teal-500/20 scale-105' : 'bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50' }}"

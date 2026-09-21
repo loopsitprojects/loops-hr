@@ -70,8 +70,8 @@
     <body class="font-sans antialiased text-brand-navy dark:text-gray-100 transition-colors duration-300">
         @php
             $containerClass = match($maxWidth ?? '7xl') {
-                'full' => 'w-full px-2 sm:px-4 lg:px-6',
-                'wide' => 'max-w-[98%] 2xl:max-w-[1750px] mx-auto px-2 sm:px-4 lg:px-6',
+                'full' => 'w-full px-4 sm:px-6 lg:px-8',
+                'wide' => 'max-w-[95%] 2xl:max-w-[1650px] mx-auto px-4 sm:px-6 lg:px-8',
                 '2xl' => 'max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8',
                 default => 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
             };
@@ -82,7 +82,7 @@
             <!-- Page Heading -->
             @isset($header)
                 <header class="bg-white dark:bg-slate-900 border-b border-gray-100/50 dark:border-slate-800 transition-colors duration-300">
-                    <div class="{{ $containerClass }} py-4 sm:py-5">
+                    <div class="{{ $containerClass }} py-5 sm:py-6">
                         {{ $header }}
                     </div>
                 </header>
