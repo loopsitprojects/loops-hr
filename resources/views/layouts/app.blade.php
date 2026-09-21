@@ -68,13 +68,21 @@
         </style>
     </head>
     <body class="font-sans antialiased text-brand-navy dark:text-gray-100 transition-colors duration-300">
+        @php
+            $containerClass = match($maxWidth ?? '7xl') {
+                'full' => 'w-full px-2 sm:px-4 lg:px-6',
+                'wide' => 'max-w-[98%] 2xl:max-w-[1750px] mx-auto px-2 sm:px-4 lg:px-6',
+                '2xl' => 'max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8',
+                default => 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
+            };
+        @endphp
         <div class="min-h-screen bg-surface-light dark:bg-slate-950">
-            @include('layouts.navigation')
+            @include('layouts.navigation', ['containerClass' => $containerClass])
 
             <!-- Page Heading -->
             @isset($header)
                 <header class="bg-white dark:bg-slate-900 border-b border-gray-100/50 dark:border-slate-800 transition-colors duration-300">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                    <div class="{{ $containerClass }} py-4 sm:py-5">
                         {{ $header }}
                     </div>
                 </header>
@@ -82,37 +90,39 @@
 
             <!-- Page Content -->
             <main>
-                <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-6">
-                    @if(session('success'))
-                        <div class="session-alert mb-6 bg-emerald-50 dark:bg-emerald-500/10 border-l-4 border-emerald-400 p-4 rounded-xl shadow-premium transition-all animate-in fade-in slide-in-from-top-4 duration-500">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <svg class="h-5 w-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-[10px] font-black text-emerald-800 dark:text-emerald-400 uppercase tracking-[0.2em]">{{ session('success') }}</p>
+                @if(session('success') || session('error'))
+                    <div class="{{ $containerClass }} mt-4 mb-2">
+                        @if(session('success'))
+                            <div class="session-alert mb-4 bg-emerald-50 dark:bg-emerald-500/10 border-l-4 border-emerald-400 p-4 rounded-xl shadow-premium transition-all animate-in fade-in slide-in-from-top-4 duration-500">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-[10px] font-black text-emerald-800 dark:text-emerald-400 uppercase tracking-[0.2em]">{{ session('success') }}</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    @endif
+                        @endif
 
-                    @if(session('error'))
-                        <div class="session-alert mb-6 bg-red-50 dark:bg-red-500/10 border-l-4 border-red-400 p-4 rounded-xl shadow-sm transition-all animate-in fade-in slide-in-from-top-4 duration-500">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-[10px] font-black text-red-800 dark:text-red-400 uppercase tracking-[0.2em]">{{ session('error') }}</p>
+                        @if(session('error'))
+                            <div class="session-alert mb-4 bg-red-50 dark:bg-red-500/10 border-l-4 border-red-400 p-4 rounded-xl shadow-sm transition-all animate-in fade-in slide-in-from-top-4 duration-500">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-[10px] font-black text-red-800 dark:text-red-400 uppercase tracking-[0.2em]">{{ session('error') }}</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    @endif
-                </div>
+                        @endif
+                    </div>
+                @endif
 
                 {{ $slot }}
             </main>

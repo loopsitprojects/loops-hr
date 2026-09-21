@@ -1,9 +1,9 @@
-<x-app-layout>
+<x-app-layout maxWidth="wide">
     @section('title', $designation->title . ' - ' . $department->name . ' | recruitment')
     <x-slot name="header">
-        <div class="flex justify-between items-center px-2 gap-6">
-            <div>
-                <nav class="flex mb-3" aria-label="Breadcrumb">
+        <div class="flex flex-col md:flex-row md:items-center justify-between px-2 gap-4 lg:gap-6">
+            <div class="shrink-0">
+                <nav class="flex mb-2" aria-label="Breadcrumb">
                     <ol class="inline-flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest">
                         <li>
                             <a href="{{ route('recruitment.index') }}" class="text-slate-400 dark:text-slate-500 hover:text-brand-teal transition-colors">Recruitment</a>
@@ -28,21 +28,44 @@
                 <p class="text-xs text-slate-500 mt-1 uppercase tracking-widest">{{ $department->name }} Division</p>
             </div>
             
-                <form action="{{ route('recruitment.designation', [$department, $designation]) }}" method="GET" class="relative group">
+            <div class="flex-1 max-w-sm lg:max-w-md w-full min-w-[280px]">
+                <form action="{{ route('recruitment.designation', [$department, $designation]) }}" method="GET" class="relative group w-full">
                     @if($showArchived)
                         <input type="hidden" name="archived" value="1">
                     @endif
+                    @if(request()->filled('stage') && request('stage') !== 'all')
+                        <input type="hidden" name="stage" value="{{ request('stage') }}">
+                    @endif
                     
-                    <div class="relative flex items-center">
+                    <div class="relative flex items-center w-full">
+                        <button type="submit" 
+                                class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 dark:text-slate-500 hover:text-brand-teal dark:hover:text-brand-accent transition-colors cursor-pointer"
+                                title="Search">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </button>
                         <input type="text" 
                                name="search" 
                                value="{{ request('search') }}" 
-                               placeholder="Search by name or email..." 
-                               class="block w-full px-4 py-2 bg-transparent text-slate-700 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border border-slate-300 dark:border-slate-700/50 rounded-xl text-xs font-medium focus:ring-1 focus:ring-brand-teal focus:border-brand-teal transition-all">
+                               placeholder="Search by name, email, or phone..." 
+                               autocomplete="off"
+                               class="block w-full pl-10 pr-10 py-2 sm:py-2.5 bg-slate-100/90 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 border border-slate-200/90 dark:border-slate-700/80 rounded-full text-xs font-medium focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal dark:focus:border-brand-accent transition-all shadow-inner">
+                        
+                        @if(request('search'))
+                            <a href="{{ request()->fullUrlWithQuery(['search' => null, 'page' => null]) }}" 
+                               class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
+                               title="Clear search">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </a>
+                        @endif
                     </div>
                 </form>
+            </div>
 
-            <div class="flex flex-wrap items-center gap-4 justify-end">
+            <div class="flex flex-wrap items-center gap-4 justify-end shrink-0">
                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
                 <form id="bulk-delete-form" 
                       action="{{ $showArchived ? route('recruitment.bulkUnarchive') : route('recruitment.bulkArchive') }}" 
@@ -201,10 +224,10 @@
         </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-12">
+    <div class="py-2 sm:py-3">
+        <div class="max-w-[98%] 2xl:max-w-[1750px] mx-auto px-2 sm:px-4 lg:px-6 mt-1">
             @if(request()->has('candidate_id'))
-                <div class="mb-6 bg-brand-teal/10 border border-brand-teal/20 p-4 rounded-2xl flex items-center justify-between animate-in fade-in slide-in-from-top-4 duration-500">
+                <div class="mb-4 bg-brand-teal/10 border border-brand-teal/20 p-3 rounded-2xl flex items-center justify-between animate-in fade-in slide-in-from-top-4 duration-500">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full bg-brand-teal/20 flex items-center justify-center">
                             <svg class="w-5 h-5 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -224,7 +247,7 @@
             @endif
             
             <!-- Status Filter -->
-            <div class="mb-8 overflow-x-auto no-scrollbar pb-2">
+            <div class="mb-3 sm:mb-4 overflow-x-auto no-scrollbar pb-1">
                 <div class="flex items-center gap-2 min-w-max">
                     <a href="{{ request()->fullUrlWithQuery(['stage' => 'all', 'page' => null]) }}" 
                        class="h-8 px-4 flex items-center justify-center rounded-full text-[9px] whitespace-nowrap text-center leading-3 font-black uppercase tracking-[0.1em] transition-all duration-300 {{ $currentStage == 'all' ? 'shadow-lg shadow-teal-500/20 scale-105' : 'bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50' }}"
@@ -366,20 +389,22 @@
                                     </td>
                                     <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
                                         <div class="relative flex flex-col items-center justify-center gap-0.5">
+                                            @php
+                                                $ratingsCount = $candidate->ratings->count();
+                                                $hasRating = $ratingsCount > 0 || ($candidate->rating && $candidate->rating > 0);
+                                            @endphp
                                             <button type="button" 
+                                                id="candidate-rate-btn-{{ $candidate->id }}"
                                                 onclick="openRateCandidateModal({{ $candidate->id }})"
-                                                class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-400/10 hover:bg-amber-400/20 dark:bg-amber-400/10 dark:hover:bg-amber-400/20 text-amber-400 border border-amber-400/20 dark:border-amber-400/30 transition-all shadow-sm active:scale-95 group/rate"
+                                                class="inline-flex items-center justify-center w-8 h-8 rounded-full {{ $hasRating ? 'bg-emerald-500/15 hover:bg-emerald-500/25 dark:bg-emerald-500/20 dark:hover:bg-emerald-500/30 text-emerald-500 dark:text-emerald-400 border border-emerald-500/30 dark:border-emerald-500/40' : 'bg-slate-100/80 hover:bg-slate-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/80' }} transition-all shadow-sm active:scale-95 group/rate"
                                                 title="{{ $candidate->rating ? 'Rating: ' . number_format($candidate->rating, 1) . ' / 5.0' : 'Rate candidate' }}">
-                                                <svg class="w-4 h-4 fill-current text-amber-400 transition-transform group-hover/rate:scale-110" viewBox="0 0 20 20">
+                                                <svg class="w-4 h-4 fill-current transition-transform group-hover/rate:scale-110" viewBox="0 0 20 20">
                                                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                                                 </svg>
                                             </button>
-                                            <span class="candidate-rating-display-{{ $candidate->id }} text-[10px] font-bold text-amber-500 dark:text-amber-400 {{ $candidate->rating ? '' : 'hidden' }}">
+                                            <span class="candidate-rating-display-{{ $candidate->id }} text-[10px] font-bold text-emerald-600 dark:text-emerald-400 {{ $candidate->rating ? '' : 'hidden' }}">
                                                 {{ $candidate->rating ? number_format($candidate->rating, 1) : '' }}
                                             </span>
-                                            @php
-                                                $ratingsCount = $candidate->ratings->count();
-                                            @endphp
                                             <span class="candidate-rating-count-{{ $candidate->id }} text-[9px] font-medium text-slate-400 dark:text-slate-500 {{ $ratingsCount > 0 ? '' : 'hidden' }}">
                                                 @if($ratingsCount > 0)
                                                     {{ $ratingsCount }} {{ Str::plural('rating', $ratingsCount) }}
@@ -388,7 +413,7 @@
                                         </div>
                                     </td>
                                     <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center relative group/tooltip">
-                                        <button class="feedback-trigger inline-flex items-center justify-center w-7 h-7 rounded-full transition-all {{ $candidate->feedbacks->isNotEmpty() ? 'bg-brand-teal/20 text-brand-teal ring-1 ring-brand-teal/30 hover:bg-brand-teal/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 hover:text-brand-teal hover:bg-brand-teal/10' }}"
+                                        <button class="feedback-trigger inline-flex items-center justify-center w-7 h-7 rounded-full transition-all {{ $candidate->feedbacks->isNotEmpty() ? 'bg-emerald-500/20 text-emerald-500 ring-1 ring-emerald-500/30 hover:bg-emerald-500/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 hover:text-emerald-500 hover:bg-emerald-500/10' }}"
                                             data-candidate-id="{{ $candidate->id }}"
                                             title="{{ $candidate->feedbacks->isNotEmpty() ? $candidate->feedbacks->count() . ' Feedback(s)' : 'Add feedback' }}"
                                             onclick="openFeedbackModal({{ $candidate->id }})">
@@ -400,7 +425,7 @@
                                         @if($candidate->feedbacks->isNotEmpty())
                                             <!-- Hover Tooltip -->
                                             <div class="feedback-tooltip pointer-events-none opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-200 absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-slate-900/95 dark:bg-slate-950/95 backdrop-blur-md rounded-xl p-3 shadow-xl border border-slate-800/80 text-left z-50">
-                                                <p class="text-[9px] font-black uppercase tracking-wider text-brand-teal mb-2 border-b border-slate-800 pb-1">Previous Feedbacks ({{ $candidate->feedbacks->count() }})</p>
+                                                <p class="text-[9px] font-black uppercase tracking-wider text-emerald-400 mb-2 border-b border-slate-800 pb-1">Previous Feedbacks ({{ $candidate->feedbacks->count() }})</p>
                                                 <div class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
                                                     @foreach($candidate->feedbacks as $f)
                                                         <div class="text-[10px] leading-tight">
@@ -558,7 +583,12 @@
                             @empty
                                 <tr>
                                     <td colspan="{{ (auth()->user()->isAdmin() || auth()->user()->isHR()) ? 16 : 11 }}" class="py-12 text-center text-xs font-bold text-slate-400 uppercase tracking-widest italic">
-                                        No candidates found for this designation.
+                                        @if(request('search'))
+                                            No candidates found matching "<span class="text-slate-600 dark:text-slate-200 not-italic font-black">{{ request('search') }}</span>". 
+                                            <a href="{{ request()->fullUrlWithQuery(['search' => null, 'page' => null]) }}" class="text-brand-teal hover:underline ml-1.5 not-italic font-bold normal-case">Clear search</a>
+                                        @else
+                                            No candidates found for this designation.
+                                        @endif
                                     </td>
                                 </tr>
                             @endforelse
@@ -2529,12 +2559,15 @@ We appreciate the opportunity to review your profile and wish you the very best 
 
                         if (feedbacks.length > 0) {
                             trigger.className = trigger.className
-                                .replace(/bg-slate-100[^\s]*/g, '')
-                                .replace(/dark:bg-slate-800[^\s]*/g, '')
-                                .replace(/text-slate-400[^\s]*/g, '')
-                                .replace(/dark:text-slate-600[^\s]*/g, '');
-                            trigger.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-400', 'dark:text-slate-600', 'hover:text-brand-teal', 'hover:bg-brand-teal/10');
-                            trigger.classList.add('bg-brand-teal/20', 'text-brand-teal', 'ring-1', 'ring-brand-teal/30', 'hover:bg-brand-teal/30');
+                                .replace(/bg-slate-[^\s]*/g, '')
+                                .replace(/dark:bg-slate-[^\s]*/g, '')
+                                .replace(/text-slate-[^\s]*/g, '')
+                                .replace(/dark:text-slate-[^\s]*/g, '')
+                                .replace(/hover:[^\s]*/g, '')
+                                .replace(/bg-brand-teal[^\s]*/g, '')
+                                .replace(/text-brand-teal[^\s]*/g, '')
+                                .replace(/ring-[^\s]*/g, '');
+                            trigger.classList.add('bg-emerald-500/20', 'text-emerald-500', 'ring-1', 'ring-emerald-500/30', 'hover:bg-emerald-500/30');
                             trigger.title = `${feedbacks.length} Feedback(s)`;
 
                             // Build the tooltip content dynamically
@@ -2552,7 +2585,7 @@ We appreciate the opportunity to review your profile and wish you the very best 
                             });
 
                             const tooltipHtml = `
-                                <p class="text-[9px] font-black uppercase tracking-wider text-brand-teal mb-2 border-b border-slate-800 pb-1">Previous Feedbacks (${feedbacks.length})</p>
+                                <p class="text-[9px] font-black uppercase tracking-wider text-emerald-400 mb-2 border-b border-slate-800 pb-1">Previous Feedbacks (${feedbacks.length})</p>
                                 <div class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
                                     ${listHtml}
                                 </div>
@@ -2567,8 +2600,14 @@ We appreciate the opportunity to review your profile and wish you the very best 
                             tooltip.innerHTML = tooltipHtml;
                             tooltip.classList.remove('hidden');
                         } else {
-                            trigger.classList.remove('bg-brand-teal/20', 'text-brand-teal', 'ring-1', 'ring-brand-teal/30', 'hover:bg-brand-teal/30');
-                            trigger.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-400', 'dark:text-slate-600', 'hover:text-brand-teal', 'hover:bg-brand-teal/10');
+                            trigger.className = trigger.className
+                                .replace(/bg-emerald-[^\s]*/g, '')
+                                .replace(/text-emerald-[^\s]*/g, '')
+                                .replace(/ring-[^\s]*/g, '')
+                                .replace(/hover:[^\s]*/g, '')
+                                .replace(/bg-brand-teal[^\s]*/g, '')
+                                .replace(/text-brand-teal[^\s]*/g, '');
+                            trigger.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-400', 'dark:text-slate-600', 'hover:text-emerald-500', 'hover:bg-emerald-500/10');
                             trigger.title = 'Add feedback';
                             if (tooltip) {
                                 tooltip.classList.add('hidden');
@@ -3455,6 +3494,56 @@ We appreciate the opportunity to review your profile and wish you the very best 
         }
 
         function updateCandidateRowRatingDisplay(candidateId, aggregateRating, ratingsCount) {
+            const hasRating = (ratingsCount !== undefined && parseInt(ratingsCount, 10) > 0) || 
+                              (aggregateRating !== null && aggregateRating !== undefined && parseFloat(aggregateRating) > 0);
+
+            const rateBtn = document.getElementById(`candidate-rate-btn-${candidateId}`);
+            if (rateBtn) {
+                if (hasRating) {
+                    rateBtn.className = rateBtn.className
+                        .replace(/bg-slate-[^\s]+/g, '')
+                        .replace(/dark:bg-slate-[^\s]+/g, '')
+                        .replace(/hover:bg-slate-[^\s]+/g, '')
+                        .replace(/dark:hover:bg-slate-[^\s]+/g, '')
+                        .replace(/text-slate-[^\s]+/g, '')
+                        .replace(/dark:text-slate-[^\s]+/g, '')
+                        .replace(/border-slate-[^\s]+/g, '')
+                        .replace(/dark:border-slate-[^\s]+/g, '')
+                        .replace(/bg-amber-[^\s]+/g, '')
+                        .replace(/text-amber-[^\s]+/g, '')
+                        .replace(/border-amber-[^\s]+/g, '');
+
+                    rateBtn.classList.add(
+                        'bg-emerald-500/15', 'hover:bg-emerald-500/25', 'dark:bg-emerald-500/20', 'dark:hover:bg-emerald-500/30',
+                        'text-emerald-500', 'dark:text-emerald-400',
+                        'border', 'border-emerald-500/30', 'dark:border-emerald-500/40'
+                    );
+                    if (aggregateRating !== null && aggregateRating !== undefined && parseFloat(aggregateRating) > 0) {
+                        rateBtn.title = `Rating: ${parseFloat(aggregateRating).toFixed(1)} / 5.0`;
+                    }
+                } else {
+                    rateBtn.className = rateBtn.className
+                        .replace(/bg-emerald-[^\s]+/g, '')
+                        .replace(/dark:bg-emerald-[^\s]+/g, '')
+                        .replace(/hover:bg-emerald-[^\s]+/g, '')
+                        .replace(/dark:hover:bg-emerald-[^\s]+/g, '')
+                        .replace(/text-emerald-[^\s]+/g, '')
+                        .replace(/dark:text-emerald-[^\s]+/g, '')
+                        .replace(/border-emerald-[^\s]+/g, '')
+                        .replace(/dark:border-emerald-[^\s]+/g, '')
+                        .replace(/bg-amber-[^\s]+/g, '')
+                        .replace(/text-amber-[^\s]+/g, '')
+                        .replace(/border-amber-[^\s]+/g, '');
+
+                    rateBtn.classList.add(
+                        'bg-slate-100/80', 'hover:bg-slate-200/80', 'dark:bg-slate-800/80', 'dark:hover:bg-slate-700/80',
+                        'text-slate-400', 'dark:text-slate-500',
+                        'border', 'border-slate-200/80', 'dark:border-slate-700/80'
+                    );
+                    rateBtn.title = 'Rate candidate';
+                }
+            }
+
             const badgeEl = document.querySelector(`.candidate-rating-display-${candidateId}`);
             if (badgeEl) {
                 if (aggregateRating !== null && aggregateRating !== undefined && parseFloat(aggregateRating) > 0) {
