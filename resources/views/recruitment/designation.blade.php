@@ -272,27 +272,27 @@
                                 <th class="pb-3 pl-4 w-[38px] min-w-[38px]">
                                     <input type="checkbox" id="select-all" class="rounded border-slate-300 text-brand-navy focus:ring-brand-navy dark:border-slate-700 dark:bg-slate-900 dark:checked:bg-brand-navy">
                                 </th>
-                                <th class="pb-3 text-left min-w-[120px]">Name</th>
-                                <th class="pb-3 text-left min-w-[165px]">Email</th>
-                                <th class="pb-3 text-left w-[90px] min-w-[85px]">Phone</th>
+                                <th class="pb-3 text-left w-[150px] min-w-[130px]">Name</th>
+                                <th class="pb-3 text-left w-[175px] min-w-[150px]">Email</th>
+                                <th class="pb-3 text-left w-[110px] min-w-[100px]">Phone</th>
                                 <th class="pb-3 text-left w-[75px] min-w-[70px]">Salary</th>
-                                <th class="pb-3 text-center w-[135px] min-w-[130px]">Status</th>
-                                <th class="pb-3 text-center w-[72px] min-w-[68px]">Pipeline</th>
-                                <th class="pb-3 text-center w-[52px] min-w-[48px]">Rating</th>
-                                <th class="pb-3 text-center w-[38px] min-w-[38px]">Fbk</th>
+                                <th class="pb-3 text-center w-[130px] min-w-[125px]">Status</th>
+                                <th class="pb-3 text-center w-[70px] min-w-[65px]">Pipeline</th>
+                                <th class="pb-3 text-center w-[50px] min-w-[45px]">Rating</th>
+                                <th class="pb-3 text-center w-[36px] min-w-[36px]">Fbk</th>
                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
-                                    <th class="pb-3 text-center w-[38px] min-w-[38px]">Test</th>
-                                    <th class="pb-3 text-center w-[38px] min-w-[38px]">Rej</th>
+                                    <th class="pb-3 text-center w-[36px] min-w-[36px]">Test</th>
+                                    <th class="pb-3 text-center w-[36px] min-w-[36px]">Rej</th>
                                 @endif
-                                <th class="pb-3 text-center w-[38px] min-w-[38px]">Link</th>
+                                <th class="pb-3 text-center w-[36px] min-w-[36px]">Link</th>
                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
-                                    <th class="pb-3 text-center w-[38px] min-w-[38px]">Sch</th>
+                                    <th class="pb-3 text-center w-[36px] min-w-[36px]">Sch</th>
                                 @endif
-                                <th class="pb-3 text-center w-[38px] min-w-[38px]">CV</th>
-                                <th class="pb-3 text-center w-[38px] min-w-[38px]">PTF</th>
+                                <th class="pb-3 text-center w-[36px] min-w-[36px]">CV</th>
+                                <th class="pb-3 text-center w-[36px] min-w-[36px]">PTF</th>
                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
-                                    <th class="pb-3 text-center w-[38px] min-w-[38px]">Trf</th>
-                                    <th class="pb-3 text-center w-[38px] min-w-[38px]">{{ $showArchived ? 'Rst' : 'Arc' }}</th>
+                                    <th class="pb-3 text-center w-[36px] min-w-[36px]">Trf</th>
+                                    <th class="pb-3 text-center w-[36px] min-w-[36px]">{{ $showArchived ? 'Rst' : 'Arc' }}</th>
                                 @endif
                             </tr>
                         </thead>
@@ -303,17 +303,18 @@
                                         <input type="checkbox" name="selected_candidates[]" value="{{ $candidate->id }}" class="candidate-checkbox rounded border-slate-300 text-brand-navy focus:ring-brand-navy dark:border-slate-700 dark:bg-slate-900 dark:checked:bg-brand-navy">
                                     </td>
                                     <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-                                         <div class="text-sm font-bold text-brand-navy dark:text-white cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text"
+                                         <div class="text-sm font-bold text-brand-navy dark:text-white cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text truncate"
                                             @if(auth()->user()->isAdmin() || auth()->user()->isHR()) contenteditable="true" @endif
                                             data-candidate-id="{{ $candidate->id }}"
                                             data-field="name"
                                             spellcheck="false"
-                                            onblur="updateField(this)">
+                                            onblur="updateField(this)"
+                                            title="{{ $candidate->name }}">
                                             {{ $candidate->name }}
                                         </div>
                                     </td>
                                     <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-                                        <div class="text-xs font-medium text-slate-500 dark:text-slate-400 cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text break-all"
+                                        <div class="text-xs font-medium text-slate-500 dark:text-slate-400 cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text truncate"
                                             @if(auth()->user()->isAdmin() || auth()->user()->isHR()) contenteditable="true" @endif
                                             data-candidate-id="{{ $candidate->id }}"
                                             data-field="email"
@@ -324,7 +325,7 @@
                                         </div>
                                     </td>
                                     <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-                                        <div class="text-xs font-medium text-slate-400 dark:text-slate-500 cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text"
+                                        <div class="text-xs font-medium text-slate-400 dark:text-slate-500 cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text whitespace-nowrap"
                                             @if(auth()->user()->isAdmin() || auth()->user()->isHR()) contenteditable="true" @endif
                                             data-candidate-id="{{ $candidate->id }}"
                                             data-field="phone"
