@@ -242,34 +242,34 @@
             </div>
 
             <div class="bg-white dark:bg-slate-900 transition-colors duration-300 rounded-3xl shadow-sm overflow-hidden border border-slate-100 dark:border-slate-800">
-                <div class="p-6 overflow-x-auto">
-                    <table class="w-full min-w-[1520px] table-fixed border-separate border-spacing-y-2">
+                <div class="p-4 sm:p-6 overflow-x-auto">
+                    <table class="w-full min-w-[1100px] table-fixed border-separate border-spacing-y-2">
                         <thead>
                             <tr class="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-300">
-                                <th class="pb-3 pl-4 w-[40px]">
+                                <th class="pb-3 pl-4 w-[38px] min-w-[38px]">
                                     <input type="checkbox" id="select-all" class="rounded border-slate-300 text-brand-navy focus:ring-brand-navy dark:border-slate-700 dark:bg-slate-900 dark:checked:bg-brand-navy">
                                 </th>
-                                <th class="pb-3 text-left w-[12%] min-w-[140px]">Name</th>
-                                <th class="pb-3 text-left w-[14%] min-w-[190px]">Email</th>
-                                <th class="pb-3 text-left w-[8%] min-w-[100px]">Phone</th>
-                                <th class="pb-3 text-left w-[6%] min-w-[80px]">Salary</th>
-                                <th class="pb-3 text-center w-[12%] min-w-[145px]">Status</th>
-                                <th class="pb-3 text-center w-[7%] min-w-[85px]">Pipeline</th>
-                                <th class="pb-3 text-center w-[5%] min-w-[55px]">Rating</th>
-                                <th class="pb-3 text-center w-[4%] min-w-[45px]">Fbk</th>
+                                <th class="pb-3 text-left min-w-[120px]">Name</th>
+                                <th class="pb-3 text-left min-w-[165px]">Email</th>
+                                <th class="pb-3 text-left w-[90px] min-w-[85px]">Phone</th>
+                                <th class="pb-3 text-left w-[75px] min-w-[70px]">Salary</th>
+                                <th class="pb-3 text-center w-[135px] min-w-[130px]">Status</th>
+                                <th class="pb-3 text-center w-[72px] min-w-[68px]">Pipeline</th>
+                                <th class="pb-3 text-center w-[52px] min-w-[48px]">Rating</th>
+                                <th class="pb-3 text-center w-[38px] min-w-[38px]">Fbk</th>
                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
-                                    <th class="pb-3 text-center w-[4%] min-w-[45px]">Test</th>
-                                    <th class="pb-3 text-center w-[4%] min-w-[45px]">Rej</th>
+                                    <th class="pb-3 text-center w-[38px] min-w-[38px]">Test</th>
+                                    <th class="pb-3 text-center w-[38px] min-w-[38px]">Rej</th>
                                 @endif
-                                <th class="pb-3 text-center w-[4%] min-w-[45px]">Link</th>
+                                <th class="pb-3 text-center w-[38px] min-w-[38px]">Link</th>
                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
-                                    <th class="pb-3 text-center w-[4%] min-w-[45px]">Sch</th>
+                                    <th class="pb-3 text-center w-[38px] min-w-[38px]">Sch</th>
                                 @endif
-                                <th class="pb-3 text-center w-[4%] min-w-[45px]">CV</th>
-                                <th class="pb-3 text-center w-[4%] min-w-[45px]">PTF</th>
+                                <th class="pb-3 text-center w-[38px] min-w-[38px]">CV</th>
+                                <th class="pb-3 text-center w-[38px] min-w-[38px]">PTF</th>
                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR())
-                                    <th class="pb-3 text-center w-[4%] min-w-[45px]">Trf</th>
-                                    <th class="pb-3 text-center w-[4%] min-w-[45px]">{{ $showArchived ? 'Rst' : 'Arc' }}</th>
+                                    <th class="pb-3 text-center w-[38px] min-w-[38px]">Trf</th>
+                                    <th class="pb-3 text-center w-[38px] min-w-[38px]">{{ $showArchived ? 'Rst' : 'Arc' }}</th>
                                 @endif
                             </tr>
                         </thead>
@@ -280,7 +280,7 @@
                                         <input type="checkbox" name="selected_candidates[]" value="{{ $candidate->id }}" class="candidate-checkbox rounded border-slate-300 text-brand-navy focus:ring-brand-navy dark:border-slate-700 dark:bg-slate-900 dark:checked:bg-brand-navy">
                                     </td>
                                     <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-                                         <div class="text-sm font-bold text-brand-navy dark:text-white cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text"
+                                         <div class="text-sm font-bold text-brand-navy dark:text-white cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text"
                                             @if(auth()->user()->isAdmin() || auth()->user()->isHR()) contenteditable="true" @endif
                                             data-candidate-id="{{ $candidate->id }}"
                                             data-field="name"
@@ -290,7 +290,7 @@
                                         </div>
                                     </td>
                                     <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-                                        <div class="text-xs font-medium text-slate-500 dark:text-slate-400 cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text break-all"
+                                        <div class="text-xs font-medium text-slate-500 dark:text-slate-400 cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text break-all"
                                             @if(auth()->user()->isAdmin() || auth()->user()->isHR()) contenteditable="true" @endif
                                             data-candidate-id="{{ $candidate->id }}"
                                             data-field="email"
@@ -301,7 +301,7 @@
                                         </div>
                                     </td>
                                     <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-                                        <div class="text-xs font-medium text-slate-400 dark:text-slate-500 cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text"
+                                        <div class="text-xs font-medium text-slate-400 dark:text-slate-500 cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text"
                                             @if(auth()->user()->isAdmin() || auth()->user()->isHR()) contenteditable="true" @endif
                                             data-candidate-id="{{ $candidate->id }}"
                                             data-field="phone"
@@ -311,7 +311,7 @@
                                         </div>
                                     </td>
                                     <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-                                        <div class="text-xs font-bold text-slate-700 dark:text-white cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text"
+                                        <div class="text-xs font-bold text-slate-700 dark:text-white cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text"
                                             @if(auth()->user()->isAdmin() || auth()->user()->isHR()) contenteditable="true" @endif
                                             data-candidate-id="{{ $candidate->id }}"
                                             data-field="expected_salary"
@@ -321,12 +321,12 @@
                                             {{ $candidate->expected_salary ? (is_numeric(str_replace(',', '', $candidate->expected_salary)) ? number_format(str_replace(',', '', $candidate->expected_salary)) : $candidate->expected_salary) : '—' }}
                                         </div>
                                     </td>
-                                    <td class="py-3 px-2 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
-                                        <div class="relative inline-flex items-center justify-center w-full min-w-[135px]">
+                                    <td class="py-3 px-1 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
+                                        <div class="relative inline-flex items-center justify-center w-full min-w-[125px]">
                                             <select data-candidate-id="{{ $candidate->id }}"
                                                 data-field="stage"
-                                                class="editable-field block w-full bg-slate-100/80 hover:bg-slate-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700/80 rounded-xl px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-teal/20 transition-all text-center pr-7 disabled:cursor-not-allowed disabled:opacity-70"
-                                                style="appearance: none !important; -webkit-appearance: none !important; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 8px center; background-size: 0.45rem auto;"
+                                                class="editable-field block w-full bg-slate-100/80 hover:bg-slate-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700/80 rounded-xl px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-teal/20 transition-all text-center pr-6 disabled:cursor-not-allowed disabled:opacity-70"
+                                                style="appearance: none !important; -webkit-appearance: none !important; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 6px center; background-size: 0.45rem auto;"
                                                 {{ (auth()->user()->isAdmin() || auth()->user()->isHR() || auth()->user()->isHOD() || auth()->user()->isManagers() || auth()->user()->isManager()) ? '' : 'disabled' }}>
                                                 @if(auth()->user()->isAdmin() || auth()->user()->isHR() || auth()->user()->isManager() || auth()->user()->isHOD())
                                                     {{-- Admin, HR, Operations Manager, and HOD see all options --}}
