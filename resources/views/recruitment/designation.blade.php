@@ -325,13 +325,25 @@
                                         </div>
                                     </td>
                                     <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-                                        <div class="text-xs font-medium text-slate-400 dark:text-slate-500 cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text whitespace-nowrap"
+                                        @php
+                                            $phones = $candidate->phone ? array_values(array_filter(array_map('trim', preg_split('/[\/,\n]+/', $candidate->phone)))) : [];
+                                        @endphp
+                                        <div class="text-xs font-medium text-slate-400 dark:text-slate-500 cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text"
                                             @if(auth()->user()->isAdmin() || auth()->user()->isHR()) contenteditable="true" @endif
                                             data-candidate-id="{{ $candidate->id }}"
                                             data-field="phone"
                                             spellcheck="false"
-                                            onblur="updateField(this)">
-                                            {{ $candidate->phone ?? '—' }}
+                                            onblur="updateField(this)"
+                                            title="{{ $candidate->phone }}">
+                                            @if(count($phones) > 1)
+                                                <div class="flex flex-col gap-0.5 leading-tight">
+                                                    @foreach($phones as $p)
+                                                        <span class="truncate block whitespace-nowrap">{{ $p }}</span>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <span class="truncate block whitespace-nowrap">{{ $candidate->phone ?? '—' }}</span>
+                                            @endif
                                         </div>
                                     </td>
                                     <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
@@ -918,11 +930,13 @@
         function updateField(element) {
             const candidateId = element.dataset.candidateId;
             const fieldName = element.dataset.field;
-            let value = element.textContent.trim();
+            let value = (element.innerText !== undefined ? element.innerText : element.textContent).trim();
 
             // Strip commas for salary before saving
             if (fieldName === 'expected_salary') {
                 value = value.replace(/,/g, '');
+            } else if (fieldName === 'phone') {
+                value = value.split('\n').map(s => s.trim()).filter(Boolean).join(' / ');
             }
 
             element.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
@@ -940,6 +954,16 @@
             .then(data => {
                 if (data.success) {
                     element.style.backgroundColor = 'rgba(34, 197, 94, 0.15)';
+                    if (fieldName === 'phone') {
+                        const parts = value ? value.split(/[\/,\n]+/).map(s => s.trim()).filter(Boolean) : [];
+                        const esc = (str) => String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+                        if (parts.length > 1) {
+                            element.innerHTML = `<div class="flex flex-col gap-0.5 leading-tight">${parts.map(p => `<span class="truncate block whitespace-nowrap">${esc(p)}</span>`).join('')}</div>`;
+                        } else {
+                            element.innerHTML = `<span class="truncate block whitespace-nowrap">${esc(value || '—')}</span>`;
+                        }
+                        element.title = value || '';
+                    }
                     setTimeout(() => { element.style.backgroundColor = ''; }, 800);
                 } else {
                     element.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
