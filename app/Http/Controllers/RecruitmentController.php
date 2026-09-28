@@ -480,18 +480,14 @@ class RecruitmentController extends Controller
                 return response()->json(['error' => 'Invalid stage value'], 422);
             }
 
-            $mandatoryRatingStages = ['2nd_interview', 'offer_sent', 'offer_accepted', 'joined', 'rejected'];
-            
-            // Super Admin and HR Admin are exempt from rating requirement when rejecting
-            $isExemptFromRejectRating = ($value === 'rejected') && ($user->isAdmin() || $user->isHR());
+            $mandatoryRatingStages = ['2nd_interview', 'offer_sent', 'offer_accepted', 'joined'];
 
-            if (in_array($value, $mandatoryRatingStages) && !$isExemptFromRejectRating && !$candidate->hasRating()) {
+            if (in_array($value, $mandatoryRatingStages) && !$candidate->hasRating()) {
                 $stageLabels = [
                     '2nd_interview' => '2nd Interview',
                     'offer_sent' => 'Offer Sent',
                     'offer_accepted' => 'Offer Accepted',
                     'joined' => 'Joined',
-                    'rejected' => 'Rejected',
                 ];
                 $targetLabel = $stageLabels[$value] ?? str_replace('_', ' ', $value);
                 return response()->json([
