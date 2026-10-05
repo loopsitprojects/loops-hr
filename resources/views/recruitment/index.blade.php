@@ -309,7 +309,7 @@ We appreciate the opportunity to review your profile and wish you the very best 
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Indexing in Background...
+                Indexing in Progress...
             `;
 
             try {
@@ -324,9 +324,29 @@ We appreciate the opportunity to review your profile and wish you the very best 
                 const data = await res.json();
                 
                 if (data.success) {
-                    // Start polling progress every 3 seconds
-                    if (!indexPollInterval) {
-                        indexPollInterval = setInterval(refreshIndexStatus, 3000);
+                    if (data.mode === 'batch') {
+                        // Update UI stats directly from the batch run
+                        document.getElementById('stat-total-active').innerText = data.total_active || 0;
+                        document.getElementById('stat-indexed-active').innerText = data.indexed_active || 0;
+                        document.getElementById('stat-unindexed-active').innerText = data.unindexed_active || 0;
+                        
+                        const pct = data.percentage_active || 0;
+                        document.getElementById('stat-percentage-text').innerText = pct + '%';
+                        document.getElementById('stat-progress-bar').style.width = pct + '%';
+
+                        if (data.has_more) {
+                            // Automatically process next batch until complete
+                            setTimeout(triggerServerIndexing, 400);
+                        } else {
+                            btn.disabled = true;
+                            btn.classList.add('opacity-50', 'cursor-not-allowed');
+                            btn.innerHTML = '✓ All Active CVs Indexed';
+                        }
+                    } else {
+                        // Background process mode: Poll every 3 seconds
+                        if (!indexPollInterval) {
+                            indexPollInterval = setInterval(refreshIndexStatus, 3000);
+                        }
                     }
                 } else {
                     alert(data.message || 'Failed to start indexing.');
@@ -335,7 +355,7 @@ We appreciate the opportunity to review your profile and wish you the very best 
                 }
             } catch (err) {
                 console.error(err);
-                alert('Could not start server-side indexing.');
+                alert('Could not start server-side indexing: ' + err.message);
                 btn.disabled = false;
                 btn.innerText = 'Start Indexing Now';
             }

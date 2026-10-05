@@ -1713,13 +1713,64 @@ class RecruitmentController extends Controller
              return response()->json(['error' => 'Unauthorized'], 403);
          }
 
-         $artisanPath = base_path('artisan');
-         $cmd = 'php ' . escapeshellarg($artisanPath) . ' candidates:index-cvs --active-only > /dev/null 2>&1 &';
-         exec($cmd);
+         // Check if exec() is allowed on this server
+         $disabledFunctions = explode(',', (string) ini_get('disable_functions'));
+         $disabledFunctions = array_map('trim', $disabledFunctions);
+         $canExec = function_exists('exec') && !in_array('exec', $disabledFunctions);
+
+         if ($canExec) {
+             try {
+                 $artisanPath = base_path('artisan');
+                 $cmd = 'php ' . escapeshellarg($artisanPath) . ' candidates:index-cvs --active-only > /dev/null 2>&1 &';
+                 @\exec($cmd);
+
+                 return response()->json([
+                     'success' => true,
+                     'mode' => 'background',
+                     'message' => 'Background indexing process started successfully.'
+                 ]);
+             } catch (\Throwable $e) {
+                 // Fallback to in-process execution below
+             }
+         }
+
+         // Fallback for servers where exec() is disabled in php.ini (e.g. cPanel / shared hosting):
+         // Process candidates directly in-process in safe batches of 15
+         $batchSize = 15;
+         try {
+             \Illuminate\Support\Facades\Artisan::call('candidates:index-cvs', [
+                 '--limit' => $batchSize,
+                 '--active-only' => true
+             ]);
+         } catch (\Throwable $e) {
+             \Illuminate\Support\Facades\Log::error('In-process CV indexing error: ' . $e->getMessage());
+         }
+
+         $totalActive = \App\Models\Candidate::where('is_archived', 0)
+             ->whereNotNull('cv_path')
+             ->where('cv_path', '!=', '')
+             ->count();
+
+         $unindexedActive = \App\Models\Candidate::where('is_archived', 0)
+             ->whereNotNull('cv_path')
+             ->where('cv_path', '!=', '')
+             ->where(function ($q) {
+                 $q->whereNull('parsed_content')->orWhere('parsed_content', '');
+             })
+             ->count();
+
+         $indexedActive = $totalActive - $unindexedActive;
+         $pct = $totalActive > 0 ? round(($indexedActive / $totalActive) * 100) : 100;
 
          return response()->json([
              'success' => true,
-             'message' => 'Background indexing process started successfully.'
+             'mode' => 'batch',
+             'total_active' => $totalActive,
+             'indexed_active' => $indexedActive,
+             'unindexed_active' => $unindexedActive,
+             'percentage_active' => $pct,
+             'has_more' => ($unindexedActive > 0),
+             'message' => ($unindexedActive > 0) ? "Indexed {$batchSize} CVs. Continuing..." : "All active CVs indexed!"
          ]);
      }
 }
