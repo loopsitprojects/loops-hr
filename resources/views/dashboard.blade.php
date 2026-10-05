@@ -44,16 +44,41 @@
                         <p class="text-xl font-black text-brand-navy dark:text-white leading-none">{{ \App\Models\Designation::where('is_active', true)->count() }}</p>
                     </div>
                 </div>
+
+                <!-- CV Search Index Status -->
+                <a href="{{ route('recruitment.index') }}" class="flex items-center gap-3 bg-white dark:bg-slate-900 px-4 py-3 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 hover:shadow-md hover:border-brand-teal/40 transition-all duration-200 group" title="View CV Index Coverage & Manager">
+                    <div class="p-2 rounded-xl bg-teal-50 dark:bg-teal-500/20 text-brand-teal dark:text-brand-accent group-hover:bg-brand-teal group-hover:text-white transition-colors duration-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">CV Search Index</p>
+                        @php
+                            $totalActive = \App\Models\Candidate::where('is_archived', false)->whereNotNull('cv_path')->where('cv_path', '!=', '')->count();
+                            $indexedActive = \App\Models\Candidate::where('is_archived', false)->whereNotNull('parsed_content')->where('parsed_content', '!=', '')->count();
+                            $indexPct = $totalActive > 0 ? round(($indexedActive / $totalActive) * 100) : 100;
+                        @endphp
+                        <p class="text-xl font-black text-brand-teal dark:text-brand-accent leading-none">{{ $indexPct }}% <span class="text-[9px] font-bold text-slate-400 uppercase">Indexed</span></p>
+                    </div>
+                </a>
             </div>
 
             <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-premium border border-gray-50 dark:border-slate-800 transition-colors duration-300 mb-8">
-                <div class="flex items-center justify-between">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div class="p-2 text-brand-navy dark:text-gray-200 font-medium text-lg">
                         {{ __("Welcome back,") }} <span class="text-brand-teal dark:text-brand-accent font-black">{{ Auth::user()->name }}</span>! {{ __("Your HR dashboard is ready.") }}
                     </div>
                     
                     @if(auth()->user()->isAdmin() || auth()->user()->isHR())
-                        <div class="flex items-center gap-4">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <a href="{{ route('recruitment.index') }}" class="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-brand-navy dark:text-white rounded-xl border border-gray-200 dark:border-slate-700 transition-all shadow-sm hover:shadow-md group text-xs font-bold uppercase tracking-wider">
+                                <svg class="w-4 h-4 text-brand-teal dark:text-brand-accent group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <span>CV Index Manager</span>
+                            </a>
+
                             @if($isCalendarConnected)
                                 <div class="flex items-center gap-3">
                                     <div class="flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-800">

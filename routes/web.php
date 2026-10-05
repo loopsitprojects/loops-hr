@@ -54,6 +54,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/recruitment/candidates/bulk-transfer', [\App\Http\Controllers\RecruitmentController::class, 'bulkTransfer'])->name('recruitment.candidates.bulkTransfer');
     Route::post('/recruitment/candidates/bulk-destroy', [\App\Http\Controllers\RecruitmentController::class, 'bulkDestroy'])->name('recruitment.bulkDestroy');
 
+    // CV Search Indexing Management
+    Route::get('/recruitment/index-status', [\App\Http\Controllers\RecruitmentController::class, 'cvIndexStatus'])->name('recruitment.cvIndexStatus');
+    Route::post('/recruitment/trigger-indexing', [\App\Http\Controllers\RecruitmentController::class, 'triggerCvIndexing'])->name('recruitment.triggerCvIndexing');
+
     // Assessment Features
     Route::get('/recruitment/tests-data', [\App\Http\Controllers\RecruitmentController::class, 'getTests'])->name('recruitment.tests.get');
     Route::post('/recruitment/candidate/{candidate}/send-assessment', [\App\Http\Controllers\RecruitmentController::class, 'sendAssessment'])->name('recruitment.candidate.sendAssessment');

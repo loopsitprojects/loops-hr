@@ -28,41 +28,89 @@
                 <p class="text-xs text-slate-500 mt-1 uppercase tracking-widest">{{ $department->name }} Division</p>
             </div>
             
-            <div class="flex-1 max-w-sm lg:max-w-md w-full min-w-[280px]">
-                <form action="{{ route('recruitment.designation', [$department, $designation]) }}" method="GET" class="relative group w-full">
+            <div class="flex-1 max-w-sm lg:max-w-lg w-full min-w-[280px]">
+                <form id="candidate-search-form" action="{{ route('recruitment.designation', [$department, $designation]) }}" method="GET" class="relative group w-full">
                     @if($showArchived)
                         <input type="hidden" name="archived" value="1">
                     @endif
                     @if(request()->filled('stage') && request('stage') !== 'all')
                         <input type="hidden" name="stage" value="{{ request('stage') }}">
                     @endif
+                    <input type="hidden" name="match_mode" id="match_mode_input" value="{{ $matchMode ?? 'all' }}">
                     
-                    <div class="relative flex items-center w-full">
+                    <div class="flex items-center w-full pl-3.5 pr-1.5 py-1.5 bg-slate-100/90 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80 rounded-full shadow-inner transition-all focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:ring-2 focus-within:ring-brand-teal/20 focus-within:border-brand-teal dark:focus-within:border-brand-accent">
+                        <!-- Search Icon -->
                         <button type="submit" 
-                                class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 dark:text-slate-500 hover:text-brand-teal dark:hover:text-brand-accent transition-colors cursor-pointer"
-                                title="Search">
+                                class="shrink-0 text-slate-400 dark:text-slate-500 hover:text-brand-teal dark:hover:text-brand-accent transition-colors cursor-pointer mr-2.5 flex items-center justify-center"
+                                title="Search candidates">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                         </button>
+
+                        <!-- Input Field -->
                         <input type="text" 
                                name="search" 
+                               id="candidate_search_input"
                                value="{{ request('search') }}" 
-                               placeholder="Search by name, email, or phone..." 
+                               placeholder="Search name, phone, or skills (e.g. React, Node, AWS)..." 
                                autocomplete="off"
-                               class="block w-full pl-10 pr-10 py-2 sm:py-2.5 bg-slate-100/90 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 border border-slate-200/90 dark:border-slate-700/80 rounded-full text-xs font-medium focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal dark:focus:border-brand-accent transition-all shadow-inner">
+                               class="w-full min-w-0 bg-transparent border-0 p-0 text-xs font-medium text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-0 focus:border-0"
+                               style="background: transparent !important; border: none !important; box-shadow: none !important; outline: none !important; padding: 0 !important;">
                         
-                        @if(request('search'))
-                            <a href="{{ request()->fullUrlWithQuery(['search' => null, 'page' => null]) }}" 
-                               class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
-                               title="Clear search">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </a>
-                        @endif
+                        <!-- Actions: Clear & Filter Button -->
+                        <div class="shrink-0 flex items-center gap-1.5 ml-2">
+                            @if(request('search'))
+                                <a href="{{ request()->fullUrlWithQuery(['search' => null, 'match_mode' => null, 'page' => null]) }}" 
+                                   class="p-1 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors flex items-center"
+                                   title="Clear search">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </a>
+                            @endif
+                            <button type="submit" 
+                                    class="px-3.5 py-1.5 bg-brand-teal hover:bg-brand-teal/90 text-white rounded-full text-[10px] font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer flex items-center justify-center">
+                                Filter
+                            </button>
+                        </div>
                     </div>
                 </form>
+
+                @if(!empty($skillTerms) && count($skillTerms) > 0)
+                    <!-- Active Search Skills & Match Mode -->
+                    <div class="flex flex-wrap items-center gap-1.5 mt-2 px-1">
+                        <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Filtered by:</span>
+                        @foreach($skillTerms as $term)
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-teal/10 text-brand-teal dark:text-brand-accent border border-brand-teal/20">
+                                <span>{{ $term }}</span>
+                                <button type="button" 
+                                        onclick="removeSearchTerm('{{ addslashes($term) }}')" 
+                                        class="hover:text-rose-500 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                                        title="Remove '{{ $term }}'">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </span>
+                        @endforeach
+
+                        @if(count($skillTerms) > 1)
+                            <div class="inline-flex items-center bg-slate-200/70 dark:bg-slate-800 rounded-lg p-0.5 ml-auto border border-slate-300/60 dark:border-slate-700/60 text-[9px] font-bold uppercase tracking-wider">
+                                <button type="button" 
+                                        onclick="setMatchMode('all')" 
+                                        class="px-2 py-0.5 rounded-md transition-all cursor-pointer {{ ($matchMode ?? 'all') === 'all' ? 'bg-white dark:bg-slate-900 text-brand-navy dark:text-white shadow-xs font-black' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400' }}"
+                                        title="Candidates must match ALL searched skills">
+                                    All (AND)
+                                </button>
+                                <button type="button" 
+                                        onclick="setMatchMode('any')" 
+                                        class="px-2 py-0.5 rounded-md transition-all cursor-pointer {{ ($matchMode ?? 'all') === 'any' ? 'bg-white dark:bg-slate-900 text-brand-navy dark:text-white shadow-xs font-black' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400' }}"
+                                        title="Candidates must match AT LEAST ONE skill">
+                                    Any (OR)
+                                </button>
+                            </div>
+                        @endif
+                    </div>
+                @endif
             </div>
 
             <div class="flex flex-wrap items-center gap-4 justify-end shrink-0">
@@ -312,6 +360,26 @@
                                             title="{{ $candidate->name }}">
                                             {{ $candidate->name }}
                                         </div>
+
+                                        @if(!empty($skillTerms) && count($skillTerms) > 0)
+                                            <div class="flex flex-wrap items-center gap-1 px-2 pt-0.5 pb-1">
+                                                @foreach($skillTerms as $term)
+                                                    @php
+                                                        $isMatched = $candidate->parsed_content && stripos($candidate->parsed_content, $term) !== false;
+                                                    @endphp
+                                                    @if($isMatched)
+                                                        <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" title="Skill '{{ $term }}' found in CV">
+                                                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                            {{ $term }}
+                                                        </span>
+                                                    @elseif(($matchMode ?? 'all') === 'any')
+                                                        <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/50 dark:border-slate-700/50" title="Skill '{{ $term }}' not found in CV">
+                                                            {{ $term }}
+                                                        </span>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                        @endif
                                     </td>
                                     <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
                                         <div class="text-xs font-medium text-slate-500 dark:text-slate-400 cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text truncate"
@@ -597,8 +665,33 @@
                                 <tr>
                                     <td colspan="{{ (auth()->user()->isAdmin() || auth()->user()->isHR()) ? 16 : 11 }}" class="py-12 text-center text-xs font-bold text-slate-400 uppercase tracking-widest italic">
                                         @if(request('search'))
-                                            No candidates found matching "<span class="text-slate-600 dark:text-slate-200 not-italic font-black">{{ request('search') }}</span>". 
-                                            <a href="{{ request()->fullUrlWithQuery(['search' => null, 'page' => null]) }}" class="text-brand-teal hover:underline ml-1.5 not-italic font-bold normal-case">Clear search</a>
+                                            <div class="flex flex-col items-center justify-center gap-2">
+                                                <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                                </div>
+                                                <p>No candidates found matching "<span class="text-slate-600 dark:text-slate-200 not-italic font-black">{{ request('search') }}</span>" in {{ $designation->name }}.</p>
+                                                
+                                                @if(request()->filled('stage') && request('stage') !== 'all')
+                                                    <div class="flex flex-col items-center gap-1.5 my-1">
+                                                        <p class="text-[11px] text-amber-600 dark:text-amber-400 not-italic font-semibold">
+                                                            Currently searching only in stage: <span class="font-bold underline">{{ $stages[request('stage')] ?? ucfirst(request('stage')) }}</span>
+                                                        </p>
+                                                        <a href="{{ request()->fullUrlWithQuery(['stage' => 'all', 'page' => null]) }}" class="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-navy hover:bg-slate-800 text-white rounded-lg text-xs font-bold not-italic normal-case shadow-sm transition-all">
+                                                            Search across ALL stages in {{ $designation->name }}
+                                                        </a>
+                                                    </div>
+                                                @endif
+
+                                                @if(!empty($skillTerms) && count($skillTerms) > 1 && ($matchMode ?? 'all') === 'all')
+                                                    <p class="text-[10px] text-slate-500 normal-case not-italic font-medium">None of the candidates had <span class="font-bold">ALL</span> searched skills in their CV.</p>
+                                                    <button type="button" onclick="setMatchMode('any')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-brand-teal text-white rounded-xl text-xs font-bold not-italic normal-case shadow-sm hover:opacity-90 transition-all cursor-pointer">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                                        Try matching ANY of these skills instead
+                                                    </button>
+                                                @endif
+
+                                                <a href="{{ request()->fullUrlWithQuery(['search' => null, 'match_mode' => null, 'page' => null]) }}" class="text-brand-teal hover:underline not-italic font-bold normal-case text-xs mt-1">Clear search filter</a>
+                                            </div>
                                         @else
                                             No candidates found for this designation.
                                         @endif
@@ -3689,6 +3782,27 @@ We appreciate the opportunity to review your profile and wish you the very best 
             } finally {
                 btn.disabled = false;
                 btn.innerText = 'Submit rating';
+            }
+        }
+
+        function removeSearchTerm(term) {
+            const input = document.getElementById('candidate_search_input');
+            const form = document.getElementById('candidate-search-form');
+            if (!input || !form) return;
+            
+            const raw = input.value || '';
+            const splitRegex = (raw.includes(',') || raw.includes(';')) ? /[,;]+/ : /\s+/;
+            const terms = raw.split(splitRegex).map(t => t.trim()).filter(t => t.length > 0 && t.toLowerCase() !== term.toLowerCase());
+            input.value = terms.join(', ');
+            form.submit();
+        }
+
+        function setMatchMode(mode) {
+            const matchInput = document.getElementById('match_mode_input');
+            const form = document.getElementById('candidate-search-form');
+            if (matchInput && form) {
+                matchInput.value = mode;
+                form.submit();
             }
         }
 

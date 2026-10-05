@@ -119,9 +119,23 @@ class RecruitmentController extends Controller
         $showArchived = request()->has('archived');
         // Original $query = $designation->candidates(); was here.
         
-        // For candidates list - Replaced with new logic from instruction
-        $currentStage = request('stage', 'all'); // Defined here as it's used in the new query
-        $search = request('search'); // Defined here as it's used in the new query
+        // For candidates list
+        $currentStage = request('stage', 'all');
+        $search = trim(request('search', ''));
+        $matchMode = request('match_mode', 'all'); // 'all' (AND) or 'any' (OR)
+
+        // Parse search query into individual skill terms (supports comma, semicolon, or space-separated skills)
+        $skillTerms = [];
+        if (!empty($search)) {
+            if (str_contains($search, ',') || str_contains($search, ';') || str_contains($search, '/')) {
+                $rawTokens = preg_split('/[,;\/]+/', $search);
+            } else {
+                // If no delimiters, check if multiple words were entered (e.g. "Photoshop Illustrator")
+                $words = preg_split('/\s+/', $search);
+                $rawTokens = count($words) > 1 ? $words : [$search];
+            }
+            $skillTerms = array_values(array_filter(array_map('trim', $rawTokens)));
+        }
 
         $query = Candidate::where('designation_id', $designation->id)
             ->where('is_archived', $showArchived);
@@ -130,23 +144,47 @@ class RecruitmentController extends Controller
             $query->where('stage', $currentStage);
         }
 
-        if ($search) {
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+        if (!empty($search)) {
+            $query->where(function($q) use ($search, $skillTerms, $matchMode) {
+                // 1. Direct match on candidate contact details
+                $q->where(function($contactQ) use ($search) {
+                    $contactQ->where('name', 'like', "%{$search}%")
+                             ->orWhere('email', 'like', "%{$search}%")
+                             ->orWhere('phone', 'like', "%{$search}%");
+                });
+
+                // 2. Skill-based CV search in parsed_content
+                if (count($skillTerms) > 1) {
+                    if ($matchMode === 'any') {
+                        // Match ANY skill (OR)
+                        $q->orWhere(function($skillQ) use ($skillTerms) {
+                            foreach ($skillTerms as $term) {
+                                if (!empty($term)) {
+                                    $skillQ->orWhere('parsed_content', 'like', "%{$term}%");
+                                }
+                            }
+                        });
+                    } else {
+                        // Default: Match ALL skills (AND)
+                        $q->orWhere(function($skillQ) use ($skillTerms) {
+                            foreach ($skillTerms as $term) {
+                                if (!empty($term)) {
+                                    $skillQ->where('parsed_content', 'like', "%{$term}%");
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    // Single term in parsed_content
+                    $q->orWhere('parsed_content', 'like', "%{$search}%");
+                }
             });
         }
 
-        // The instruction had a misplaced line here: `$query->where('id', request()->candidate_id);`
-        // This line is part of the original logic, but the new query structure implies it should be integrated.
-        // Assuming the intent is to keep the candidate_id filter if present.
         if (request()->has('candidate_id')) {
             $query->where('id', request()->candidate_id);
         }
 
-        // Original $candidates = $query->with(['assessments', 'interviews'])->latest()->paginate(10)->withQueryString();
-        // Replaced with new logic from instruction
         $candidates = $query->with(['assessments', 'interviews', 'feedbacks'])->latest()->paginate(10)->withQueryString();
         
         $stages = [
@@ -174,7 +212,20 @@ class RecruitmentController extends Controller
             $q->orderBy('name', 'asc');
         }])->orderBy('name', 'asc')->get();
 
-        return view('recruitment.designation', compact('department', 'designation', 'candidates', 'showArchived', 'hods', 'stages', 'currentStage', 'rejectionTemplate', 'allDepartments'));
+        return view('recruitment.designation', compact(
+            'department', 
+            'designation', 
+            'candidates', 
+            'showArchived', 
+            'hods', 
+            'stages', 
+            'currentStage', 
+            'rejectionTemplate', 
+            'allDepartments',
+            'search',
+            'skillTerms',
+            'matchMode'
+        ));
     }
 
     public function storeDesignation(Request $request, Department $department)
@@ -262,28 +313,27 @@ class RecruitmentController extends Controller
         Log::info('Manual FTP upload successful', ['path' => $path]);
     }
         
-        // Auto-Extraction Logic
+        // Auto-Extraction Logic & Full CV Text Parsing
         $name = $request->name;
         $email = $request->email;
         $phone = $request->phone;
+        $parsedContent = null;
 
-        if (empty($name) || empty($email)) {
-            try {
-                $parser = new Parser();
-                $pdf = $parser->parseFile($file->getPathname());
-                $text = $pdf->getText();
-                $filename = $file->getClientOriginalName();
-                
-                $extractedData = $this->extractCVData($text, $filename);
-                
-                if (empty($name)) $name = $extractedData['name'];
-                if (empty($email)) $email = $extractedData['email'];
-                if (empty($phone)) $phone = $extractedData['phone'];
-            } catch (\Exception $e) {
-                // If parsing fails, fall back to "Unknown Candidate" so we still save the file
-                if (empty($name)) $name = 'Unknown Candidate'; 
-                Log::error("Auto-extraction failed in store: " . $e->getMessage());
-            }
+        try {
+            $parser = new Parser();
+            $pdf = $parser->parseFile($file->getPathname());
+            $parsedContent = $pdf->getText();
+            $filename = $file->getClientOriginalName();
+            
+            $extractedData = $this->extractCVData($parsedContent, $filename);
+            
+            if (empty($name)) $name = $extractedData['name'];
+            if (empty($email)) $email = $extractedData['email'];
+            if (empty($phone)) $phone = $extractedData['phone'];
+        } catch (\Exception $e) {
+            // If parsing fails, fall back to "Unknown Candidate" so we still save the file
+            if (empty($name)) $name = 'Unknown Candidate'; 
+            Log::error("Auto-extraction failed in store: " . $e->getMessage());
         }
         
         $designationName = Designation::find($request->designation_id)->name ?? 'Unknown';
@@ -296,9 +346,8 @@ class RecruitmentController extends Controller
             'email' => $email ?: 'noemail_' . time() . '_' . rand(100, 999) . '@extraction.com',
             'phone' => $phone,
             'designation' => $designationName,
-            'designation_id' => $request->designation_id,
-            'department_id' => $request->department_id,
             'cv_path' => $path,
+            'parsed_content' => $parsedContent,
             'stage' => 'default', 
             'status' => 'pending', 
             'hod_comment' => null,
@@ -382,9 +431,8 @@ class RecruitmentController extends Controller
                     'email' => $extractedData['email'] ?: 'noemail_' . time() . '_' . rand(100, 999) . '@extraction.com',
                     'phone' => $extractedData['phone'],
                     'designation' => $designationName,
-                    'designation_id' => $request->designation_id,
-                    'department_id' => $request->department_id,
                     'cv_path' => $path,
+                    'parsed_content' => $text,
                     'stage' => 'default',
                     'status' => 'pending',
                 ]);
@@ -1639,4 +1687,40 @@ class RecruitmentController extends Controller
              'ratings_count' => $ratingsCount
          ]);
      }
+
+     public function cvIndexStatus()
+     {
+         $totalActive = Candidate::where('is_archived', 0)->count();
+         $indexedActive = Candidate::where('is_archived', 0)->whereNotNull('parsed_content')->where('parsed_content', '!=', '')->count();
+         $totalAll = Candidate::count();
+         $indexedAll = Candidate::whereNotNull('parsed_content')->where('parsed_content', '!=', '')->count();
+         $percentage = $totalActive > 0 ? round(($indexedActive / $totalActive) * 100) : 100;
+
+         return response()->json([
+             'total_active' => $totalActive,
+             'indexed_active' => $indexedActive,
+             'unindexed_active' => max(0, $totalActive - $indexedActive),
+             'percentage_active' => $percentage,
+             'total_all' => $totalAll,
+             'indexed_all' => $indexedAll,
+         ]);
+     }
+
+     public function triggerCvIndexing(\Illuminate\Http\Request $request)
+     {
+         $user = auth()->user();
+         if (!$user->isAdmin() && !$user->isHR()) {
+             return response()->json(['error' => 'Unauthorized'], 403);
+         }
+
+         $artisanPath = base_path('artisan');
+         $cmd = 'php ' . escapeshellarg($artisanPath) . ' candidates:index-cvs --active-only > /dev/null 2>&1 &';
+         exec($cmd);
+
+         return response()->json([
+             'success' => true,
+             'message' => 'Background indexing process started successfully.'
+         ]);
+     }
 }
+

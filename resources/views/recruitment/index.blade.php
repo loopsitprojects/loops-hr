@@ -9,6 +9,12 @@
             </div>
             <div class="flex flex-wrap items-center gap-4 justify-end">
                 @if(Auth::user()->isAdmin() || Auth::user()->isHR())
+                    <button onclick="openIndexModal()" class="inline-flex items-center px-4 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-semibold uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-300 shadow-sm cursor-pointer">
+                        <svg class="w-3.5 h-3.5 mr-1.5 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        {{ __('CV Index') }}
+                    </button>
                     <a href="{{ route('tests.index') }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-semibold uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-300 shadow-sm">
                         {{ __('Assessment Tests') }}
                     </a>
@@ -249,5 +255,177 @@ We appreciate the opportunity to review your profile and wish you the very best 
                 btn.textContent = originalText;
             }
         }
+
+        let indexPollInterval = null;
+
+        function openIndexModal() {
+            document.getElementById('cvIndexModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            refreshIndexStatus();
+        }
+
+        function closeIndexModal() {
+            document.getElementById('cvIndexModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            if (indexPollInterval) {
+                clearInterval(indexPollInterval);
+                indexPollInterval = null;
+            }
+        }
+
+        async function refreshIndexStatus() {
+            try {
+                const res = await fetch('{{ route("recruitment.cvIndexStatus") }}');
+                const data = await res.json();
+                
+                document.getElementById('stat-total-active').innerText = data.total_active || 0;
+                document.getElementById('stat-indexed-active').innerText = data.indexed_active || 0;
+                document.getElementById('stat-unindexed-active').innerText = data.unindexed_active || 0;
+                
+                const pct = data.percentage_active || 0;
+                document.getElementById('stat-percentage-text').innerText = pct + '%';
+                document.getElementById('stat-progress-bar').style.width = pct + '%';
+
+                const btn = document.getElementById('btn-run-indexer');
+                if (data.unindexed_active === 0) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    btn.innerHTML = '✓ All Active CVs Indexed';
+                    if (indexPollInterval) {
+                        clearInterval(indexPollInterval);
+                        indexPollInterval = null;
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching CV index status:', err);
+            }
+        }
+
+        async function triggerServerIndexing() {
+            const btn = document.getElementById('btn-run-indexer');
+            btn.disabled = true;
+            btn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Indexing in Background...
+            `;
+
+            try {
+                const res = await fetch('{{ route("recruitment.triggerCvIndexing") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    // Start polling progress every 3 seconds
+                    if (!indexPollInterval) {
+                        indexPollInterval = setInterval(refreshIndexStatus, 3000);
+                    }
+                } else {
+                    alert(data.message || 'Failed to start indexing.');
+                    btn.disabled = false;
+                    btn.innerText = 'Start Indexing Now';
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Could not start server-side indexing.');
+                btn.disabled = false;
+                btn.innerText = 'Start Indexing Now';
+            }
+        }
     </script>
+
+    <!-- CV Search Indexing Manager Modal -->
+    <div id="cvIndexModal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeIndexModal()"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-100 dark:border-slate-800">
+                <!-- Modal Header -->
+                <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/20">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-brand-teal/10 flex items-center justify-center text-brand-teal">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-brand-navy dark:text-white uppercase tracking-wider">CV Search Index Manager</h3>
+                            <p class="text-[11px] text-slate-400">Skill-based CV text extraction & search indexing</p>
+                        </div>
+                    </div>
+                    <button onclick="closeIndexModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="p-6 space-y-6">
+                    <!-- Progress Bar -->
+                    <div>
+                        <div class="flex justify-between items-center text-xs font-bold mb-2">
+                            <span class="text-slate-500 uppercase tracking-wider text-[10px]">Active CV Index Coverage</span>
+                            <span id="stat-percentage-text" class="text-brand-teal font-black text-sm">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-100 dark:bg-slate-800 h-3 rounded-full overflow-hidden p-0.5 border border-slate-200 dark:border-slate-700">
+                            <div id="stat-progress-bar" class="bg-gradient-to-r from-brand-teal to-emerald-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Stat Cards -->
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700/50 text-center">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Active</span>
+                            <span id="stat-total-active" class="block text-xl font-black text-brand-navy dark:text-white mt-0.5">—</span>
+                        </div>
+                        <div class="p-3.5 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-2xl border border-emerald-100 dark:border-emerald-800/40 text-center">
+                            <span class="block text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Indexed</span>
+                            <span id="stat-indexed-active" class="block text-xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">—</span>
+                        </div>
+                        <div class="p-3.5 bg-amber-50/50 dark:bg-amber-950/20 rounded-2xl border border-amber-100 dark:border-amber-800/40 text-center">
+                            <span class="block text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Pending</span>
+                            <span id="stat-unindexed-active" class="block text-xl font-black text-amber-600 dark:text-amber-400 mt-0.5">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Scheduled Automation Note -->
+                    <div class="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-700/60 text-xs space-y-1.5">
+                        <div class="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-bold">
+                            <svg class="w-4 h-4 text-brand-teal shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>Automatic Server Synchronization</span>
+                        </div>
+                        <p class="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
+                            • <strong>On-Upload:</strong> Any new CV uploaded via web or webhook is automatically extracted immediately.<br>
+                            • <strong>Background Cron:</strong> The server automatically re-checks and indexes any unindexed CVs <strong>every 15 minutes</strong>.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="p-6 bg-slate-50/50 dark:bg-slate-800/20 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                    <button type="button" onclick="refreshIndexStatus()" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-brand-teal transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Refresh Stats
+                    </button>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="closeIndexModal()" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 transition-all">
+                            Close
+                        </button>
+                        <button id="btn-run-indexer" type="button" onclick="triggerServerIndexing()" class="inline-flex items-center px-4 py-2 bg-brand-teal hover:bg-brand-teal/90 text-white rounded-xl text-xs font-bold shadow-md transition-all">
+                            Start Indexing Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </x-app-layout>

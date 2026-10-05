@@ -47,6 +47,16 @@ class CandidateApiController extends Controller
                 return response()->json(['message' => 'Invalid designation ID'], 422);
             }
 
+            // Parse CV text
+            $parsedContent = null;
+            try {
+                $parser = new Parser();
+                $pdf = $parser->parseFile($file->getPathname());
+                $parsedContent = $pdf->getText();
+            } catch (\Exception $e) {
+                Log::warning('CV text extraction failed in API store: ' . $e->getMessage());
+            }
+
             $candidate = Candidate::create([
                 'department_id' => $designation->department_id, // Auto-link to department
                 'designation_id' => $designation->id,
@@ -56,6 +66,7 @@ class CandidateApiController extends Controller
                 'expected_salary' => $request->expected_salary,
                 'designation' => $designation->name, // Legacy string column support
                 'cv_path' => $path,
+                'parsed_content' => $parsedContent,
                 'stage' => 'default', 
                 'status' => 'pending', 
                 'hod_comment' => null,

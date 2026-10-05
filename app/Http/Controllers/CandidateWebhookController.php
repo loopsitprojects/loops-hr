@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\NewCandidateApplication;
+use Smalot\PdfParser\Parser;
 
 class CandidateWebhookController extends Controller
 {
@@ -133,11 +134,14 @@ class CandidateWebhookController extends Controller
                 }
             }
 
-            // Download and upload CV to FTP
+            // Download and upload CV to FTP & extract content
             $cvPath = null;
+            $parsedContent = null;
             if ($cvUrl) {
                 try {
-                    $cvPath = $this->downloadAndUploadCV($cvUrl, $name);
+                    $cvData = $this->downloadAndUploadCV($cvUrl, $name);
+                    $cvPath = $cvData['path'] ?? null;
+                    $parsedContent = $cvData['parsed_content'] ?? null;
                 } catch (\Exception $e) {
                     Log::error('Failed to download/upload CV', ['url' => $cvUrl, 'error' => $e->getMessage()]);
                 }
@@ -153,6 +157,7 @@ class CandidateWebhookController extends Controller
                 'designation_id' => $designation ? $designation->id : null,
                 'department_id' => $department ? $department->id : null,
                 'cv_path' => $cvPath ?? '',
+                'parsed_content' => $parsedContent,
                 'hod_comment' => $message,
                 'stage' => 'default',
                 'status' => 'pending',
@@ -310,6 +315,19 @@ class CandidateWebhookController extends Controller
             }
         }
 
-        return $path;
+        // Extract CV text for skill-based search
+        $parsedContent = null;
+        try {
+            $parser = new Parser();
+            $pdf = $parser->parseContent($response->body());
+            $parsedContent = $pdf->getText();
+        } catch (\Exception $e) {
+            Log::warning('CV text extraction failed during webhook upload: ' . $e->getMessage());
+        }
+
+        return [
+            'path' => $path,
+            'parsed_content' => $parsedContent,
+        ];
     }
 }
