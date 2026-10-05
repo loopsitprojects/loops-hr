@@ -320,7 +320,7 @@
                                 <th class="pb-3 pl-4 w-[38px] min-w-[38px]">
                                     <input type="checkbox" id="select-all" class="rounded border-slate-300 text-brand-navy focus:ring-brand-navy dark:border-slate-700 dark:bg-slate-900 dark:checked:bg-brand-navy">
                                 </th>
-                                <th class="pb-3 text-left min-w-[150px] whitespace-nowrap">Name</th>
+                                <th class="pb-3 text-left w-[180px] min-w-[150px] max-w-[220px]">Name</th>
                                 <th class="pb-3 text-left w-[175px] min-w-[150px]">Email</th>
                                 <th class="pb-3 text-left w-[110px] min-w-[100px]">Phone</th>
                                 <th class="pb-3 text-left w-[75px] min-w-[70px]">Salary</th>
@@ -351,12 +351,14 @@
                                         <input type="checkbox" name="selected_candidates[]" value="{{ $candidate->id }}" class="candidate-checkbox rounded border-slate-300 text-brand-navy focus:ring-brand-navy dark:border-slate-700 dark:bg-slate-900 dark:checked:bg-brand-navy">
                                     </td>
                                     <td class="py-3 align-middle border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-                                         <div class="text-sm font-bold text-brand-navy dark:text-white cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text whitespace-nowrap"
+                                         <div class="text-sm font-bold text-brand-navy dark:text-white cursor-text focus:outline-none focus:ring-2 focus:ring-brand-teal/20 rounded-lg px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all editable-text leading-snug line-clamp-2"
+                                            style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word;"
                                             @if(auth()->user()->isAdmin() || auth()->user()->isHR()) contenteditable="true" @endif
                                             data-candidate-id="{{ $candidate->id }}"
                                             data-field="name"
                                             spellcheck="false"
-                                            onblur="updateField(this)"
+                                            onfocus="this.style.webkitLineClamp = 'unset'; this.style.overflow = 'visible';"
+                                            onblur="this.style.webkitLineClamp = '2'; this.style.overflow = 'hidden'; updateField(this);"
                                             title="{{ $candidate->name }}">
                                             {{ $candidate->name }}
                                         </div>
