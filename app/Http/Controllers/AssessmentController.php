@@ -24,13 +24,47 @@ class AssessmentController extends Controller
     {
         $assessment = CandidateAssessment::with(['candidate', 'test'])->where('token', $token)->firstOrFail();
         
+        if ($assessment->status === 'Submitted') {
+            return redirect()->back()->with('success', 'Your assessment has already been submitted and is under review.');
+        }
+
+        $rawUrl = trim($request->input('submission_links', ''));
+
+        // Normalize URL if scheme is missing
+        if ($rawUrl !== '' && !preg_match('/^https?:\/\//i', $rawUrl)) {
+            $rawUrl = 'https://' . $rawUrl;
+            $request->merge(['submission_links' => $rawUrl]);
+        }
+
         $request->validate([
-            'submission_links' => 'required|string|max:1000',
+            'submission_links' => [
+                'required',
+                'string',
+                'url',
+                'max:1000',
+                function ($attribute, $value, $fail) {
+                    $parsed = parse_url($value);
+                    $host = strtolower($parsed['host'] ?? '');
+                    $validHosts = ['drive.google.com', 'docs.google.com'];
+                    if (!in_array($host, $validHosts)) {
+                        $fail('The submission link must be a valid Google Drive link (e.g., https://drive.google.com/...). Other links are not allowed.');
+                        return;
+                    }
+                    $path = $parsed['path'] ?? '';
+                    $query = $parsed['query'] ?? '';
+                    if (($path === '' || $path === '/') && empty($query)) {
+                        $fail('Please provide the complete Google Drive link to your specific file or folder.');
+                    }
+                },
+            ],
+        ], [
+            'submission_links.required' => 'Please provide your Google Drive submission link.',
+            'submission_links.url' => 'Please provide a valid URL.',
         ]);
 
         $assessment->update([
             'status' => 'Submitted',
-            'submission_link' => $request->submission_links,
+            'submission_link' => $rawUrl,
             'file_path' => null
         ]);
 
