@@ -69,8 +69,10 @@ class AssessmentTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Google Drive Submission Link');
         $response->assertSee('Google Drive Only');
-        $response->assertSee('Are you sure the Google Drive link is shareable and has view access for evaluation?');
         $response->assertSee('Confirm Submission');
+        $response->assertSee('chk_general_access');
+        $response->assertSee('chk_viewer_access');
+        $response->assertSee('Disclaimer:');
     }
 
     public function test_assessment_submission_rejects_non_google_drive_links()

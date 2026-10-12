@@ -238,13 +238,6 @@
                 </div>
             </div>
 
-            <!-- The Question Dialog Text as requested -->
-            <div class="p-4 rounded-2xl bg-teal-50/70 border border-teal-100 mb-5">
-                <p class="text-sm font-bold text-slate-800 leading-relaxed">
-                    Are you sure the Google Drive link is shareable and has view access for evaluation?
-                </p>
-            </div>
-
             <!-- Link Preview Box -->
             <div class="mb-5">
                 <label class="block text-[11px] font-bold uppercase text-slate-400 tracking-wider mb-1.5">Submitted Google Drive Link</label>
@@ -256,25 +249,26 @@
                 </div>
             </div>
 
-            <!-- Checklist -->
-            <div class="space-y-2.5 mb-6 text-xs text-slate-600 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
-                <div class="flex items-center gap-2">
-                    <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    <span>General access set to <strong>"Anyone with the link"</strong></span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    <span>Permission level allows <strong>"Viewer"</strong> access</span>
-                </div>
-                <div class="flex items-center gap-2 text-amber-700">
-                    <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <!-- Checkbox Checklist & Red Disclaimer -->
+            <div class="space-y-3 mb-6 bg-slate-50/70 p-4 rounded-2xl border border-slate-200">
+                <p class="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1">Please confirm before submitting:</p>
+                
+                <label for="chk_general_access" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white border border-transparent hover:border-slate-200 transition-colors cursor-pointer group">
+                    <input type="checkbox" id="chk_general_access" class="w-4 h-4 text-teal-600 rounded border-slate-300 focus:ring-teal-500 focus:ring-2 cursor-pointer transition shrink-0 accent-teal-600">
+                    <span class="text-xs text-slate-700 select-none group-hover:text-slate-900 font-medium">General access set to <strong>"Anyone with the link"</strong></span>
+                </label>
+
+                <label for="chk_viewer_access" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white border border-transparent hover:border-slate-200 transition-colors cursor-pointer group">
+                    <input type="checkbox" id="chk_viewer_access" class="w-4 h-4 text-teal-600 rounded border-slate-300 focus:ring-teal-500 focus:ring-2 cursor-pointer transition shrink-0 accent-teal-600">
+                    <span class="text-xs text-slate-700 select-none group-hover:text-slate-900 font-medium">Permission level allows <strong>"Viewer"</strong> access</span>
+                </label>
+
+                <!-- Disclaimer in RED Color -->
+                <div class="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2.5 text-xs text-red-600 mt-2">
+                    <svg class="w-4 h-4 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                     </svg>
-                    <span>If access is private, our evaluation cannot proceed</span>
+                    <span class="leading-relaxed"><strong class="font-bold">Disclaimer:</strong> If access is private, our evaluation cannot proceed.</span>
                 </div>
             </div>
 
@@ -287,7 +281,8 @@
                 </button>
                 <button type="button" 
                     id="modalConfirmBtn"
-                    class="flex-1 px-4 py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-teal-600/20 transition-all flex items-center justify-center gap-2">
+                    disabled
+                    class="flex-1 px-4 py-3 bg-slate-300 text-slate-500 font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2 cursor-not-allowed">
                     <span>Yes, Confirm & Submit</span>
                 </button>
             </div>
@@ -309,6 +304,22 @@
         const modalPreviewLink = document.getElementById('modalPreviewLink');
         const modalCancelBtn = document.getElementById('modalCancelBtn');
         const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        const chkGeneralAccess = document.getElementById('chk_general_access');
+        const chkViewerAccess = document.getElementById('chk_viewer_access');
+
+        function updateModalConfirmState() {
+            const isConfirmed = chkGeneralAccess && chkViewerAccess && chkGeneralAccess.checked && chkViewerAccess.checked;
+            if (isConfirmed) {
+                modalConfirmBtn.disabled = false;
+                modalConfirmBtn.className = 'flex-1 px-4 py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-teal-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer';
+            } else {
+                modalConfirmBtn.disabled = true;
+                modalConfirmBtn.className = 'flex-1 px-4 py-3 bg-slate-300 text-slate-500 font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2 cursor-not-allowed';
+            }
+        }
+
+        if (chkGeneralAccess) chkGeneralAccess.addEventListener('change', updateModalConfirmState);
+        if (chkViewerAccess) chkViewerAccess.addEventListener('change', updateModalConfirmState);
 
         function normalizeUrl(value) {
             let trimmed = (value || '').trim();
@@ -409,13 +420,16 @@
 
         function openModal(link) {
             modalPreviewLink.textContent = link;
+            if (chkGeneralAccess) chkGeneralAccess.checked = false;
+            if (chkViewerAccess) chkViewerAccess.checked = false;
+            updateModalConfirmState();
+
             modal.classList.remove('hidden');
             requestAnimationFrame(() => {
                 modal.classList.remove('opacity-0');
                 modalCard.classList.remove('scale-95');
                 modalCard.classList.add('scale-100');
             });
-            modalConfirmBtn.focus();
         }
 
         function closeModal() {
@@ -465,6 +479,9 @@
         });
 
         modalConfirmBtn.addEventListener('click', function () {
+            if (!chkGeneralAccess.checked || !chkViewerAccess.checked) {
+                return;
+            }
             modalConfirmBtn.disabled = true;
             modalCancelBtn.disabled = true;
             modalConfirmBtn.innerHTML = `
